@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.460.0/umd/lucide.min.js"></script>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -148,6 +148,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Achadinhos: bloqueio Pro */
+        .ach-locked .ach-emoji { filter: blur(6px) grayscale(0.3); opacity: 0.5; }
+        .ach-locked .ach-body { filter: blur(3px); opacity: 0.5; }
+
         /* Progress Bar */
         .progress-bar-bg {
             background-color: #262626;
@@ -206,15 +210,22 @@
             <button onclick="switchView('goals')" id="nav-goals" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
                 <i data-lucide="target" class="w-5 h-5"></i> Metas
             </button>
+            <button onclick="switchView('achadinhos')" id="nav-achadinhos" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i> Achadinhos
+                <span class="ml-auto text-[10px] font-bold bg-app-red text-white px-1.5 py-0.5 rounded">NOVO</span>
+            </button>
+            <button onclick="switchView('pro')" id="nav-pro" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="crown" class="w-5 h-5"></i> Plano Pro
+            </button>
         </nav>
 
         <!-- User Profile Minimal -->
         <div class="p-4 border-t border-app-border">
             <div class="flex items-center gap-3">
-                <img src="https://ui-avatars.com/api/?name=User&background=262626&color=E10600" alt="User" class="w-10 h-10 rounded-full border border-app-border">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23262626'/%3E%3Ctext x='32' y='40' font-family='Inter,Arial,sans-serif' font-size='22' font-weight='700' fill='%23E10600' text-anchor='middle'%3EUS%3C/text%3E%3C/svg%3E" alt="User" class="w-10 h-10 rounded-full border border-app-border">
                 <div>
                     <p class="text-sm font-semibold">User_01</p>
-                    <p class="text-xs text-app-muted">Pro Plan</p>
+                    <p id="sidebarPlanLabel" class="text-xs text-app-muted">Free Plan</p>
                 </div>
                 <button onclick="logout()" class="ml-auto text-app-muted hover:text-app-red transition-colors">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -593,6 +604,185 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="goals-grid"></div>
             </section>
 
+            <!-- ===================== VIEW: ACHADINHOS ===================== -->
+            <section id="view-achadinhos" class="view-section space-y-6">
+
+                <!-- Banner -->
+                <div class="card-ui p-6 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-48 h-48 bg-app-red/20 blur-3xl rounded-full"></div>
+                    <div class="relative flex flex-col md:flex-row md:items-center gap-4">
+                        <div class="flex-1">
+                            <p class="text-app-red text-xs font-bold tracking-widest uppercase mb-1">Shopee · Academia</p>
+                            <h3 class="text-xl md:text-2xl font-bold">Achadinhos para o seu treino</h3>
+                            <p class="text-app-muted text-sm mt-1">Acessórios, roupas e itens de recuperação com bom custo-benefício. Atualizado toda semana.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="card-ui px-4 py-3 text-center min-w-[90px]">
+                                <p id="achTotalCount" class="text-2xl font-bold text-app-red glow-text">0</p>
+                                <p class="text-[11px] text-app-muted">produtos</p>
+                            </div>
+                            <div class="card-ui px-4 py-3 text-center min-w-[90px]">
+                                <p id="achMaxOff" class="text-2xl font-bold text-app-red glow-text">0%</p>
+                                <p class="text-[11px] text-app-muted">desc. máx.</p>
+                            </div>
+                            <div class="card-ui px-4 py-3 text-center min-w-[90px]">
+                                <p id="achFavCount" class="text-2xl font-bold">0</p>
+                                <p class="text-[11px] text-app-muted">favoritos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kits prontos -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold flex items-center gap-2"><i data-lucide="package" class="text-app-red w-4 h-4"></i> Kits prontos</h3>
+                        <span class="text-xs text-app-muted">Monte de uma vez</span>
+                    </div>
+                    <div id="kits-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- Busca e filtros -->
+                <div class="card-ui p-4 flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row gap-3 md:items-center">
+                        <div class="flex items-center gap-2 flex-1 bg-[#1A1A1A] border border-app-border rounded-lg px-3 py-2.5 focus-within:border-app-red">
+                            <i data-lucide="search" class="w-4 h-4 text-app-muted"></i>
+                            <input id="achSearch" type="text" oninput="renderAchadinhos()" placeholder="Buscar achadinho (garrafa, legging, fone...)" class="w-full bg-transparent border-none text-white outline-none text-sm placeholder-app-muted">
+                        </div>
+                        <select id="achSort" onchange="renderAchadinhos()" class="bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg px-3 py-2.5 outline-none focus:border-app-red">
+                            <option value="relevancia">Relevância</option>
+                            <option value="vendidos">Mais vendidos</option>
+                            <option value="menor">Menor preço</option>
+                            <option value="maior">Maior preço</option>
+                            <option value="desconto">Maior desconto</option>
+                        </select>
+                        <button onclick="toggleAchFavOnly()" id="achFavToggle" class="bg-app-card border border-app-border hover:border-app-red text-white px-4 py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
+                            <i data-lucide="heart" class="w-4 h-4"></i> Favoritos
+                        </button>
+                    </div>
+                    <div id="achChips" class="flex gap-2 flex-wrap"></div>
+                </div>
+
+                <!-- Grid de produtos -->
+                <div class="flex justify-between items-center">
+                    <p id="achResultLabel" class="text-sm text-app-muted">0 resultados</p>
+                    <p id="achProHint" class="text-xs text-app-muted flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3 text-app-red"></i> Itens marcados são exclusivos do Plano Pro</p>
+                </div>
+                <div id="ach-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"></div>
+            </section>
+
+            <!-- ===================== VIEW: PLANO PRO ===================== -->
+            <section id="view-pro" class="view-section space-y-6">
+
+                <!-- Hero -->
+                <div class="card-ui p-6 md:p-8 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-64 h-64 bg-app-red/20 blur-3xl rounded-full"></div>
+                    <div class="relative flex flex-col md:flex-row md:items-center gap-6">
+                        <div class="w-14 h-14 rounded-xl bg-app-red flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)] flex-shrink-0">
+                            <i data-lucide="crown" class="w-7 h-7 text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-app-red text-xs font-bold tracking-widest uppercase mb-1">Organize It Pro</p>
+                            <h3 id="proHeroTitle" class="text-2xl font-bold">Desbloqueie o máximo do app</h3>
+                            <p id="proHeroSub" class="text-app-muted text-sm mt-1">Achadinhos exclusivos, cupons antecipados, alertas de preço e favoritos ilimitados. 7 dias grátis.</p>
+                        </div>
+                        <div id="proStatusBadge" class="px-4 py-2 rounded-lg border border-app-border bg-[#1A1A1A] text-sm font-semibold flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-app-muted"></span> Plano Grátis
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Escolha de plano -->
+                <div id="proPlansBlock">
+                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="credit-card" class="text-app-red w-4 h-4"></i> Escolha seu plano</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <button onclick="selectProPlan('anual')" id="plan-anual" class="card-ui p-6 text-left relative">
+                            <span class="absolute -top-3 left-5 bg-app-red text-white text-[10px] font-bold px-2 py-1 rounded shadow-[0_0_10px_rgba(225,6,0,0.4)]">MAIS POPULAR</span>
+                            <p class="text-app-muted text-sm font-medium">Anual</p>
+                            <h4 class="text-3xl font-black mt-1"><span id="proPriceAnualMes">R$ 6,66</span><span class="text-sm text-app-muted font-medium">/mês</span></h4>
+                            <p id="proPriceAnualInfo" class="text-xs text-green-500 font-semibold mt-1">Economize 33% · R$ 79,90/ano</p>
+                        </button>
+                        <button onclick="selectProPlan('mensal')" id="plan-mensal" class="card-ui p-6 text-left relative">
+                            <p class="text-app-muted text-sm font-medium">Mensal</p>
+                            <h4 class="text-3xl font-black mt-1"><span id="proPriceMensal">R$ 9,90</span><span class="text-sm text-app-muted font-medium">/mês</span></h4>
+                            <p class="text-xs text-app-muted mt-1">Cancele quando quiser</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Benefícios -->
+                <div>
+                    <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="sparkles" class="text-app-red w-4 h-4"></i> O que você ganha</h3>
+                    <div id="proBenefits" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- Comparativo -->
+                <div class="card-ui overflow-hidden">
+                    <div class="p-6 border-b border-app-border flex justify-between items-center">
+                        <h3 class="font-semibold">Grátis vs Pro</h3>
+                        <span class="text-xs text-app-muted">Comparativo de recursos</span>
+                    </div>
+                    <div class="overflow-x-auto p-6 pt-2">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-app-muted border-b border-app-border">
+                                    <th class="text-left py-3 font-medium">Recurso</th>
+                                    <th class="py-3 font-medium text-center">Grátis</th>
+                                    <th class="py-3 font-medium text-center text-app-red">Pro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="proCompareBody" class="divide-y divide-app-border"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CTA -->
+                <div id="proCtaBlock" class="card-ui p-6 flex flex-col md:flex-row items-center gap-4">
+                    <div class="flex-1 text-center md:text-left">
+                        <p class="font-semibold">Comece com 7 dias grátis</p>
+                        <p id="proCtaInfo" class="text-xs text-app-muted mt-1">Depois R$ 79,90/ano. Cancele a qualquer momento.</p>
+                    </div>
+                    <button onclick="openCheckout()" class="bg-app-red hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-[0_0_15px_rgba(225,6,0,0.3)] flex items-center gap-2 w-full md:w-auto justify-center">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Assinar o Pro
+                    </button>
+                </div>
+                <div id="proManageBlock" class="hidden card-ui p-6 flex flex-col md:flex-row items-center gap-4">
+                    <div class="flex-1 text-center md:text-left">
+                        <p class="font-semibold flex items-center gap-2 justify-center md:justify-start"><i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i> Assinatura ativa</p>
+                        <p id="proManageInfo" class="text-xs text-app-muted mt-1">Plano anual · próxima cobrança em 12 meses</p>
+                    </div>
+                    <button onclick="cancelPro()" class="bg-app-card border border-app-border hover:border-app-red text-white px-6 py-3 rounded-lg font-medium transition-colors w-full md:w-auto">
+                        Cancelar assinatura
+                    </button>
+                </div>
+            </section>
+
+            <!-- Product Modal -->
+            <div id="product-modal" onclick="if(event.target===this) closeProductModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+                <div id="product-modal-body" class="card-ui w-full max-w-md p-6"></div>
+            </div>
+
+            <!-- Checkout Modal -->
+            <div id="checkout-modal" onclick="if(event.target===this) closeCheckout()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+                <div class="card-ui w-full max-w-md p-6">
+                    <h3 class="text-lg font-bold mb-1 flex items-center gap-2"><i data-lucide="crown" class="w-5 h-5 text-app-red"></i> Confirmar assinatura</h3>
+                    <p id="checkoutInfo" class="text-sm text-app-muted mb-5">Plano Anual · 7 dias grátis, depois R$ 79,90/ano.</p>
+                    <div class="space-y-2">
+                        <button onclick="activatePro()" class="w-full flex items-center gap-3 bg-[#1A1A1A] border border-app-border hover:border-app-red rounded-lg p-3 text-left transition-colors">
+                            <i data-lucide="qr-code" class="w-5 h-5 text-app-red"></i> <span class="flex-1 text-sm font-medium">Pix</span> <i data-lucide="chevron-right" class="w-4 h-4 text-app-muted"></i>
+                        </button>
+                        <button onclick="activatePro()" class="w-full flex items-center gap-3 bg-[#1A1A1A] border border-app-border hover:border-app-red rounded-lg p-3 text-left transition-colors">
+                            <i data-lucide="credit-card" class="w-5 h-5 text-app-red"></i> <span class="flex-1 text-sm font-medium">Cartão de crédito</span> <i data-lucide="chevron-right" class="w-4 h-4 text-app-muted"></i>
+                        </button>
+                        <button onclick="activatePro()" class="w-full flex items-center gap-3 bg-[#1A1A1A] border border-app-border hover:border-app-red rounded-lg p-3 text-left transition-colors">
+                            <i data-lucide="file-text" class="w-5 h-5 text-app-red"></i> <span class="flex-1 text-sm font-medium">Boleto</span> <i data-lucide="chevron-right" class="w-4 h-4 text-app-muted"></i>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-app-muted mt-4">Demonstração: nenhuma cobrança real é feita. Integre seu checkout (Mercado Pago, Stripe, Kiwify) na função <code>activatePro()</code>.</p>
+                    <button onclick="closeCheckout()" class="w-full mt-4 bg-app-card border border-app-border hover:border-app-red text-white py-2.5 rounded-lg font-medium transition-colors">Cancelar</button>
+                </div>
+            </div>
+
             <!-- Goal Creation Modal -->
             <div id="goal-modal" onclick="if(event.target===this) closeGoalModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
                 <div class="card-ui w-full max-w-md p-6">
@@ -637,7 +827,9 @@
             'routine': 'Rotina Diária',
             'workouts': 'Treinos & Físico',
             'habits': 'Hábitos Diários',
-            'goals': 'Metas & Objetivos'
+            'goals': 'Metas & Objetivos',
+            'achadinhos': 'Achadinhos Shopee',
+            'pro': 'Plano Pro'
         };
 
         function switchView(viewId) {
@@ -712,6 +904,10 @@
                 document.getElementById('habitInput').focus();
             } else if (currentView === 'goals') {
                 openGoalModal();
+            } else if (currentView === 'achadinhos') {
+                document.getElementById('achSearch').focus();
+            } else if (currentView === 'pro') {
+                if (!isPro) openCheckout();
             } else {
                 document.getElementById('txDesc').focus();
             }
@@ -1607,6 +1803,351 @@
             goalsChart.update();
         }
 
+        // ================= Achadinhos Shopee (Academia) =================
+        // Troque os links pelos seus links de afiliado Shopee.
+        const shopeeSearch = q => 'https://shopee.com.br/search?keyword=' + encodeURIComponent(q);
+        const ACH_SUBS = [
+            { id: 'todos', nome: 'Todos' },
+            { id: 'acessorios', nome: 'Acessórios' },
+            { id: 'roupas', nome: 'Roupas' },
+            { id: 'hidratacao', nome: 'Hidratação' },
+            { id: 'recuperacao', nome: 'Recuperação' },
+            { id: 'tech', nome: 'Tech' }
+        ];
+        const ACHADINHOS = [
+            { id: 'aca-01', sub: 'hidratacao', nome: 'Garrafa Térmica 1L com Marcador de Horário', emoji: '🥤', preco: 34.90, precoDe: 59.90, nota: 4.9, vendidos: 12400, cupom: 'FRETEGRATIS', tag: 'mais vendido', pro: false, desc: 'Mantém gelada por até 12h. Marcações de horário para bater a meta de água do dia.', link: shopeeSearch('garrafa termica 1l marcador horario') },
+            { id: 'aca-02', sub: 'acessorios', nome: 'Kit Elásticos de Resistência (5 níveis)', emoji: '🔗', preco: 19.90, precoDe: 39.90, nota: 4.8, vendidos: 31200, cupom: null, tag: 'custo-benefício', pro: false, desc: 'Cinco intensidades para treinar glúteo, perna e mobilidade em casa ou na academia.', link: shopeeSearch('kit elastico resistencia 5 niveis') },
+            { id: 'aca-03', sub: 'acessorios', nome: 'Luva de Treino com Munhequeira', emoji: '🧤', preco: 27.50, precoDe: 45.00, nota: 4.7, vendidos: 8900, cupom: 'ACAD10', tag: null, pro: false, desc: 'Protege as mãos de calos e dá firmeza no punho para exercícios de puxada.', link: shopeeSearch('luva treino musculacao munhequeira') },
+            { id: 'aca-04', sub: 'hidratacao', nome: 'Coqueteleira Shaker 600ml com Mola', emoji: '🥛', preco: 15.90, precoDe: 29.90, nota: 4.8, vendidos: 22100, cupom: null, tag: 'mais vendido', pro: false, desc: 'Não vaza, mistura o whey sem grumos e cabe em qualquer mochila.', link: shopeeSearch('coqueteleira shaker 600ml') },
+            { id: 'aca-05', sub: 'tech', nome: 'Fone Bluetooth Esportivo à Prova de Suor', emoji: '🎧', preco: 69.90, precoDe: 129.90, nota: 4.6, vendidos: 5600, cupom: 'TECH15', tag: 'achado pro', pro: true, desc: 'Encaixe firme, 8h de bateria e resistência IPX5 para suar sem medo.', link: shopeeSearch('fone bluetooth esportivo ipx5') },
+            { id: 'aca-06', sub: 'acessorios', nome: 'Strap de Levantamento (par)', emoji: '🪢', preco: 14.90, precoDe: 24.90, nota: 4.9, vendidos: 9800, cupom: null, tag: null, pro: false, desc: 'Mais pegada no terra e na remada. Algodão reforçado que não escorrega.', link: shopeeSearch('strap levantamento peso par') },
+            { id: 'aca-07', sub: 'roupas', nome: 'Legging Cintura Alta Suplex Sem Transparência', emoji: '🩳', preco: 39.90, precoDe: 79.90, nota: 4.7, vendidos: 44000, cupom: 'MODA20', tag: 'mais vendido', pro: false, desc: 'Tecido grosso, compressão média e não marca. Várias cores.', link: shopeeSearch('legging cintura alta suplex') },
+            { id: 'aca-08', sub: 'roupas', nome: 'Camiseta Dry Fit Masculina Básica', emoji: '👕', preco: 22.90, precoDe: 39.90, nota: 4.6, vendidos: 27600, cupom: null, tag: 'custo-benefício', pro: false, desc: 'Seca rápido e não fica pesada de suor. Ideal para comprar em kit.', link: shopeeSearch('camiseta dry fit masculina') },
+            { id: 'aca-09', sub: 'recuperacao', nome: 'Rolo de Liberação Miofascial (Foam Roller)', emoji: '🧻', preco: 44.90, precoDe: 89.90, nota: 4.8, vendidos: 4300, cupom: 'RECUPERA', tag: 'achado pro', pro: true, desc: 'Alivia dor muscular pós-treino e melhora a mobilidade em 10 minutos por dia.', link: shopeeSearch('rolo liberacao miofascial foam roller') },
+            { id: 'aca-10', sub: 'recuperacao', nome: 'Massageador Elétrico Portátil Tipo Pistola', emoji: '🔫', preco: 119.90, precoDe: 249.90, nota: 4.7, vendidos: 3100, cupom: 'PRO50', tag: 'achado pro', pro: true, desc: 'Seis cabeçotes e 4 velocidades. O mesmo efeito das massage guns caras.', link: shopeeSearch('massageador eletrico pistola portatil') },
+            { id: 'aca-11', sub: 'acessorios', nome: 'Corda de Pular com Rolamento e Contador', emoji: '🪄', preco: 18.90, precoDe: 34.90, nota: 4.8, vendidos: 15700, cupom: null, tag: null, pro: false, desc: 'Cardio rápido em casa. Cabo ajustável e pegada antiderrapante.', link: shopeeSearch('corda de pular rolamento contador') },
+            { id: 'aca-12', sub: 'acessorios', nome: 'Tapete de Yoga Antiderrapante 6mm', emoji: '🧘', preco: 42.90, precoDe: 79.90, nota: 4.7, vendidos: 19300, cupom: 'YOGA10', tag: 'mais vendido', pro: false, desc: 'Grosso, confortável e vem com alça para transporte.', link: shopeeSearch('tapete yoga antiderrapante 6mm') },
+            { id: 'aca-13', sub: 'tech', nome: 'Balança Digital de Bioimpedância com App', emoji: '⚖️', preco: 79.90, precoDe: 159.90, nota: 4.6, vendidos: 7200, cupom: null, tag: 'achado pro', pro: true, desc: 'Mede peso, gordura, massa muscular e sincroniza com o celular.', link: shopeeSearch('balanca bioimpedancia bluetooth app') },
+            { id: 'aca-14', sub: 'roupas', nome: 'Top Fitness com Bojo e Alta Sustentação', emoji: '🎽', preco: 29.90, precoDe: 59.90, nota: 4.7, vendidos: 33800, cupom: 'MODA20', tag: null, pro: false, desc: 'Segura de verdade em treinos de impacto. Alças largas e tecido respirável.', link: shopeeSearch('top fitness bojo alta sustentacao') },
+            { id: 'aca-15', sub: 'acessorios', nome: 'Bolsa de Academia com Compartimento para Tênis', emoji: '🎒', preco: 59.90, precoDe: 109.90, nota: 4.8, vendidos: 6100, cupom: null, tag: null, pro: false, desc: 'Cabe roupa, tênis, garrafa e ainda tem bolso térmico. Impermeável.', link: shopeeSearch('bolsa academia compartimento tenis') },
+            { id: 'aca-16', sub: 'acessorios', nome: 'Meia Antiderrapante para Pilates (3 pares)', emoji: '🧦', preco: 24.90, precoDe: 44.90, nota: 4.8, vendidos: 11500, cupom: null, tag: 'custo-benefício', pro: false, desc: 'Grip de silicone na sola. Ótima para funcional e pilates.', link: shopeeSearch('meia antiderrapante pilates 3 pares') },
+            { id: 'aca-17', sub: 'recuperacao', nome: 'Joelheira de Compressão Esportiva (par)', emoji: '🦵', preco: 25.90, precoDe: 49.90, nota: 4.7, vendidos: 8400, cupom: 'ACAD10', tag: null, pro: false, desc: 'Estabiliza o joelho no agachamento e no leg press. Tamanhos P ao GG.', link: shopeeSearch('joelheira compressao esportiva par') },
+            { id: 'aca-18', sub: 'tech', nome: 'Smartwatch com Monitor Cardíaco', emoji: '⌚', preco: 89.90, precoDe: 199.90, nota: 4.5, vendidos: 14200, cupom: 'TECH15', tag: null, pro: false, desc: 'Conta passos, calorias, batimentos e tem mais de 20 modos de esporte.', link: shopeeSearch('smartwatch monitor cardiaco esporte') }
+        ];
+        const ACH_KITS = [
+            { id: 'kit-iniciante', nome: 'Kit Iniciante', icon: 'rocket', desc: 'O básico para começar sem gastar muito.', itens: ['aca-01', 'aca-02', 'aca-04', 'aca-08'], pro: false },
+            { id: 'kit-forca', nome: 'Kit Força', icon: 'dumbbell', desc: 'Para subir carga com segurança.', itens: ['aca-03', 'aca-06', 'aca-17', 'aca-15'], pro: false },
+            { id: 'kit-recuperacao', nome: 'Kit Recuperação', icon: 'heart-pulse', desc: 'Menos dor no dia seguinte.', itens: ['aca-09', 'aca-10', 'aca-12', 'aca-16'], pro: true }
+        ];
+        const FREE_FAV_LIMIT = 5;
+
+        let achFavs = JSON.parse(localStorage.getItem('organizeit_achFavs')) || [];
+        let achSub = 'todos';
+        let achFavOnly = false;
+
+        const achOff = p => p.precoDe ? Math.round((1 - p.preco / p.precoDe) * 100) : 0;
+        const achK = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + ' mil' : String(n);
+        const achById = id => ACHADINHOS.find(p => p.id === id);
+        const achLocked = p => p.pro && !isPro;
+        const achIsFav = id => achFavs.includes(id);
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        function achToast(msg) {
+            let t = document.getElementById('ach-toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'ach-toast';
+                t.className = 'fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 bg-[#1A1A1A] border border-app-border text-white text-sm px-4 py-2.5 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] z-[70] transition-opacity';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.style.opacity = '1';
+            clearTimeout(achToast._t);
+            achToast._t = setTimeout(() => (t.style.opacity = '0'), 2200);
+        }
+
+        function achSelectSub(id) { achSub = id; renderAchadinhos(); }
+        function toggleAchFavOnly() {
+            achFavOnly = !achFavOnly;
+            const b = document.getElementById('achFavToggle');
+            b.classList.toggle('border-app-red', achFavOnly);
+            b.classList.toggle('text-app-red', achFavOnly);
+            renderAchadinhos();
+        }
+
+        function toggleAchFav(id, ev) {
+            if (ev) ev.stopPropagation();
+            const i = achFavs.indexOf(id);
+            if (i >= 0) { achFavs.splice(i, 1); achToast('Removido dos favoritos'); }
+            else {
+                if (!isPro && achFavs.length >= FREE_FAV_LIMIT) { closeProductModal(); achToast('Limite de 5 favoritos no plano grátis'); switchView('pro'); return; }
+                achFavs.push(id); achToast('Salvo nos favoritos');
+            }
+            localStorage.setItem('organizeit_achFavs', JSON.stringify(achFavs));
+            renderAchadinhos();
+            if (!document.getElementById('product-modal').classList.contains('hidden')) openProduct(id);
+        }
+
+        function achCardHTML(p) {
+            const locked = achLocked(p);
+            return `
+                <div onclick="openProduct('${p.id}')" class="card-ui overflow-hidden cursor-pointer relative flex flex-col ${locked ? 'ach-locked' : ''}">
+                    <div class="h-36 bg-[#1A1A1A] flex items-center justify-center text-6xl relative">
+                        <span class="ach-emoji">${p.emoji}</span>
+                        ${achOff(p) ? `<span class="absolute top-3 left-3 bg-app-red text-white text-[11px] font-bold px-2 py-1 rounded">-${achOff(p)}%</span>` : ''}
+                        ${p.tag && !locked ? `<span class="absolute top-3 right-3 bg-black/70 border border-app-border text-white text-[10px] font-semibold px-2 py-1 rounded">${esc(p.tag)}</span>` : ''}
+                        ${!locked ? `<button onclick="toggleAchFav('${p.id}', event)" class="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-black/70 border border-app-border flex items-center justify-center ${achIsFav(p.id) ? 'text-app-red border-app-red' : 'text-app-muted'} hover:text-app-red transition-colors" title="Favoritar"><i data-lucide="heart" class="w-4 h-4" ${achIsFav(p.id) ? 'fill="#E10600"' : ''}></i></button>` : ''}
+                    </div>
+                    <div class="p-4 flex flex-col gap-1.5 flex-1 ach-body">
+                        <p class="text-sm font-semibold leading-snug line-clamp-2 min-h-[40px]">${esc(p.nome)}</p>
+                        <div class="flex items-baseline gap-2"><span class="text-app-red font-bold text-lg">R$ ${formatBRL(p.preco)}</span>${p.precoDe ? `<span class="text-xs text-app-muted line-through">R$ ${formatBRL(p.precoDe)}</span>` : ''}</div>
+                        <p class="text-xs text-app-muted flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 text-yellow-500" fill="#EAB308"></i> ${p.nota.toFixed(1)} · ${achK(p.vendidos)} vendidos</p>
+                        ${p.cupom && !locked ? `<span class="text-[10px] font-bold text-yellow-500 border border-dashed border-yellow-500/50 rounded px-2 py-0.5 w-fit flex items-center gap-1"><i data-lucide="ticket" class="w-3 h-3"></i> ${esc(p.cupom)}</span>` : ''}
+                    </div>
+                    ${locked ? `<div class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 text-center p-4">
+                        <div class="w-11 h-11 rounded-full bg-app-red flex items-center justify-center shadow-[0_0_15px_rgba(225,6,0,0.5)]"><i data-lucide="lock" class="w-5 h-5 text-white"></i></div>
+                        <p class="text-sm font-bold">Exclusivo Pro</p>
+                        <p class="text-[11px] text-app-muted">Toque para desbloquear</p>
+                    </div>` : ''}
+                </div>`;
+        }
+
+        function renderAchadinhos() {
+            const grid = document.getElementById('ach-grid');
+            if (!grid) return;
+            const q = (document.getElementById('achSearch').value || '').trim().toLowerCase();
+            const sort = document.getElementById('achSort').value;
+
+            document.getElementById('achChips').innerHTML = ACH_SUBS.map(s => `
+                <button onclick="achSelectSub('${s.id}')" class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${achSub === s.id ? 'bg-app-red/10 border-app-red text-app-red' : 'bg-[#1A1A1A] border-app-border text-app-muted hover:text-white'}">${s.nome}</button>`).join('');
+
+            let list = ACHADINHOS.slice();
+            if (achSub !== 'todos') list = list.filter(p => p.sub === achSub);
+            if (achFavOnly) list = list.filter(p => achIsFav(p.id));
+            if (q) list = list.filter(p => p.nome.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
+            switch (sort) {
+                case 'menor': list.sort((a, b) => a.preco - b.preco); break;
+                case 'maior': list.sort((a, b) => b.preco - a.preco); break;
+                case 'vendidos': list.sort((a, b) => b.vendidos - a.vendidos); break;
+                case 'desconto': list.sort((a, b) => achOff(b) - achOff(a)); break;
+                default: list.sort((a, b) => ((b.tag === 'mais vendido') - (a.tag === 'mais vendido')) || b.nota - a.nota);
+            }
+
+            document.getElementById('achResultLabel').textContent = `${list.length} resultado${list.length === 1 ? '' : 's'}`;
+            document.getElementById('achProHint').classList.toggle('hidden', isPro);
+            document.getElementById('achTotalCount').textContent = ACHADINHOS.length;
+            document.getElementById('achMaxOff').textContent = Math.max(...ACHADINHOS.map(achOff)) + '%';
+            document.getElementById('achFavCount').textContent = achFavs.length + (isPro ? '' : `/${FREE_FAV_LIMIT}`);
+
+            grid.innerHTML = list.length ? list.map(achCardHTML).join('') : `
+                <div class="col-span-full card-ui p-10 text-center text-app-muted">
+                    <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-3 text-app-red"></i>
+                    <p class="text-white font-semibold">Nenhum achadinho encontrado</p>
+                    <p class="text-sm mt-1">Tente outra busca ou filtro.</p>
+                </div>`;
+
+            document.getElementById('kits-grid').innerHTML = ACH_KITS.map(k => {
+                const itens = k.itens.map(achById);
+                const total = itens.reduce((s, p) => s + p.preco, 0);
+                const locked = k.pro && !isPro;
+                return `
+                <div onclick="openKit('${k.id}')" class="card-ui p-5 cursor-pointer relative">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="w-10 h-10 rounded-lg bg-app-red/10 text-app-red flex items-center justify-center"><i data-lucide="${k.icon}" class="w-5 h-5"></i></div>
+                        ${locked ? `<span class="text-[10px] font-bold bg-app-red text-white px-2 py-1 rounded flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> PRO</span>` : `<span class="text-sm font-bold">R$ ${formatBRL(total)}</span>`}
+                    </div>
+                    <h4 class="font-semibold">${esc(k.nome)}</h4>
+                    <p class="text-xs text-app-muted mt-1 mb-3">${esc(k.desc)}</p>
+                    <div class="text-xl tracking-wider">${itens.map(p => p.emoji).join(' ')}</div>
+                </div>`;
+            }).join('');
+            refreshIcons();
+        }
+
+        function openProduct(id) {
+            const p = achById(id);
+            if (!p) return;
+            const body = document.getElementById('product-modal-body');
+            if (achLocked(p)) {
+                body.innerHTML = `
+                    <div class="h-32 rounded-lg bg-[#1A1A1A] flex items-center justify-center mb-4"><div class="w-14 h-14 rounded-full bg-app-red flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)]"><i data-lucide="lock" class="w-6 h-6 text-white"></i></div></div>
+                    <h3 class="text-lg font-bold">${esc(p.nome)}</h3>
+                    <p class="text-sm text-app-muted mt-2">Este achadinho é exclusivo do <span class="text-app-red font-semibold">Plano Pro</span>. Assine para liberar todos os produtos, kits e cupons exclusivos.</p>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="closeProductModal(); switchView('pro')" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"><i data-lucide="crown" class="w-4 h-4"></i> Ver planos</button>
+                        <button onclick="closeProductModal()" class="flex-1 bg-app-card border border-app-border hover:border-app-red text-white py-2.5 rounded-lg font-medium transition-colors">Agora não</button>
+                    </div>`;
+            } else {
+                body.innerHTML = `
+                    <div class="h-36 rounded-lg bg-[#1A1A1A] flex items-center justify-center text-7xl mb-4">${p.emoji}</div>
+                    <h3 class="text-lg font-bold leading-snug">${esc(p.nome)}</h3>
+                    <p class="text-xs text-app-muted mt-1 flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 text-yellow-500" fill="#EAB308"></i> ${p.nota.toFixed(1)} · ${achK(p.vendidos)} vendidos</p>
+                    <div class="flex items-baseline gap-2 mt-3"><span class="text-app-red font-black text-2xl glow-text">R$ ${formatBRL(p.preco)}</span>${p.precoDe ? `<span class="text-sm text-app-muted line-through">R$ ${formatBRL(p.precoDe)}</span><span class="text-xs font-bold text-app-red bg-app-red/10 px-2 py-0.5 rounded">-${achOff(p)}%</span>` : ''}</div>
+                    <p class="text-sm text-app-muted mt-3">${esc(p.desc)}</p>
+                    ${p.cupom ? `<div class="mt-4 flex items-center justify-between gap-3 bg-[#1A1A1A] border border-dashed border-yellow-500/50 rounded-lg p-3">
+                        <div><p class="text-[11px] text-app-muted">Cupom de desconto</p><p class="font-mono font-bold text-yellow-500 tracking-widest">${esc(p.cupom)}</p></div>
+                        <button onclick="copyCoupon('${esc(p.cupom)}')" class="bg-yellow-500/10 border border-yellow-500/40 hover:border-yellow-500 text-yellow-500 text-xs font-bold px-3 py-2 rounded-lg transition-colors">Copiar</button>
+                    </div>` : ''}
+                    <div class="flex gap-2 mt-6">
+                        <a href="${p.link}" target="_blank" rel="noopener sponsored" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(225,6,0,0.3)]"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Ver na Shopee</a>
+                        <button onclick="toggleAchFav('${p.id}')" class="bg-app-card border ${achIsFav(p.id) ? 'border-app-red text-app-red' : 'border-app-border text-white'} hover:border-app-red px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"><i data-lucide="heart" class="w-4 h-4" ${achIsFav(p.id) ? 'fill="#E10600"' : ''}></i></button>
+                    </div>`;
+            }
+            document.getElementById('product-modal').classList.remove('hidden');
+            refreshIcons();
+        }
+
+        function openKit(id) {
+            const k = ACH_KITS.find(x => x.id === id);
+            if (!k) return;
+            const body = document.getElementById('product-modal-body');
+            if (k.pro && !isPro) {
+                body.innerHTML = `
+                    <div class="h-32 rounded-lg bg-[#1A1A1A] flex items-center justify-center mb-4"><div class="w-14 h-14 rounded-full bg-app-red flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)]"><i data-lucide="lock" class="w-6 h-6 text-white"></i></div></div>
+                    <h3 class="text-lg font-bold">${esc(k.nome)}</h3>
+                    <p class="text-sm text-app-muted mt-2">Este kit é exclusivo do <span class="text-app-red font-semibold">Plano Pro</span>.</p>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="closeProductModal(); switchView('pro')" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors">Ver planos</button>
+                        <button onclick="closeProductModal()" class="flex-1 bg-app-card border border-app-border hover:border-app-red text-white py-2.5 rounded-lg font-medium transition-colors">Fechar</button>
+                    </div>`;
+            } else {
+                const itens = k.itens.map(achById);
+                const total = itens.reduce((s, p) => s + p.preco, 0);
+                const totalDe = itens.reduce((s, p) => s + (p.precoDe || p.preco), 0);
+                body.innerHTML = `
+                    <h3 class="text-lg font-bold flex items-center gap-2"><i data-lucide="${k.icon}" class="w-5 h-5 text-app-red"></i> ${esc(k.nome)}</h3>
+                    <p class="text-sm text-app-muted mt-1">${esc(k.desc)}</p>
+                    <div class="flex items-baseline gap-2 mt-3"><span class="text-app-red font-black text-2xl glow-text">R$ ${formatBRL(total)}</span><span class="text-sm text-app-muted line-through">R$ ${formatBRL(totalDe)}</span><span class="text-xs font-bold text-app-red bg-app-red/10 px-2 py-0.5 rounded">-${Math.round((1 - total / totalDe) * 100)}%</span></div>
+                    <div class="divide-y divide-app-border mt-4 border border-app-border rounded-lg overflow-hidden">
+                        ${itens.map(p => `<button onclick="openProduct('${p.id}')" class="w-full flex items-center gap-3 p-3 hover:bg-[#1A1A1A] text-left transition-colors"><span class="text-2xl">${p.emoji}</span><span class="flex-1 text-sm">${esc(p.nome)}</span><span class="text-sm font-bold text-app-red">R$ ${formatBRL(p.preco)}</span></button>`).join('')}
+                    </div>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="favKit('${k.id}')" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"><i data-lucide="heart" class="w-4 h-4"></i> Salvar kit nos favoritos</button>
+                        <button onclick="closeProductModal()" class="bg-app-card border border-app-border hover:border-app-red text-white px-4 py-2.5 rounded-lg font-medium transition-colors">Fechar</button>
+                    </div>`;
+            }
+            document.getElementById('product-modal').classList.remove('hidden');
+            refreshIcons();
+        }
+
+        function favKit(id) {
+            const k = ACH_KITS.find(x => x.id === id);
+            let added = 0;
+            k.itens.forEach(pid => { if (!achIsFav(pid) && (isPro || achFavs.length < FREE_FAV_LIMIT)) { achFavs.push(pid); added++; } });
+            localStorage.setItem('organizeit_achFavs', JSON.stringify(achFavs));
+            closeProductModal();
+            achToast(added ? `${added} itens salvos nos favoritos` : 'Limite de favoritos atingido');
+            renderAchadinhos();
+        }
+
+        function copyCoupon(code) {
+            if (navigator.clipboard) navigator.clipboard.writeText(code).then(() => achToast('Cupom copiado: ' + code)).catch(() => achToast('Cupom: ' + code));
+            else achToast('Cupom: ' + code);
+        }
+
+        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+
+        // ================= Plano Pro =================
+        const PRO_PRICES = { mensal: 9.90, anual: 79.90 };
+        const PRO_BENEFITS = [
+            { icon: 'unlock', t: 'Achadinhos exclusivos', d: 'Produtos e kits marcados como Pro liberados todos os dias.' },
+            { icon: 'ticket', t: 'Cupons em primeira mão', d: 'Receba códigos de desconto antes de todo mundo.' },
+            { icon: 'bell-ring', t: 'Alertas de queda de preço', d: 'Avisamos quando um favorito seu ficar mais barato.' },
+            { icon: 'heart', t: 'Favoritos ilimitados', d: 'Salve quantos achadinhos quiser (grátis: até 5).' },
+            { icon: 'bar-chart-3', t: 'Relatórios avançados', d: 'Exporte finanças, hábitos e metas em PDF e CSV.' },
+            { icon: 'cloud', t: 'Backup na nuvem', d: 'Seus dados sincronizados entre celular e computador.' }
+        ];
+        const PRO_COMPARE = [
+            { r: 'Dashboard, finanças, tarefas, rotina, treinos, hábitos e metas', f: true, p: true },
+            { r: 'Achadinhos gratuitos', f: true, p: true },
+            { r: 'Favoritos', f: 'até 5', p: 'ilimitado' },
+            { r: 'Achadinhos e kits exclusivos', f: false, p: true },
+            { r: 'Cupons antecipados', f: false, p: true },
+            { r: 'Alertas de preço', f: false, p: true },
+            { r: 'Relatórios avançados e backup', f: false, p: true }
+        ];
+
+        let isPro = localStorage.getItem('organizeit_pro') === 'true';
+        let proPlan = localStorage.getItem('organizeit_proPlan') || 'anual';
+        let proSelected = proPlan;
+
+        function selectProPlan(plan) { proSelected = plan; renderProView(); }
+
+        function renderProView() {
+            const brl = n => 'R$ ' + formatBRL(n);
+            const eco = Math.round((1 - PRO_PRICES.anual / (PRO_PRICES.mensal * 12)) * 100);
+            document.getElementById('proPriceAnualMes').textContent = brl(PRO_PRICES.anual / 12);
+            document.getElementById('proPriceAnualInfo').textContent = `Economize ${eco}% · ${brl(PRO_PRICES.anual)}/ano`;
+            document.getElementById('proPriceMensal').textContent = brl(PRO_PRICES.mensal);
+
+            ['anual', 'mensal'].forEach(pl => {
+                const el = document.getElementById('plan-' + pl);
+                el.classList.toggle('border-app-red', proSelected === pl);
+                el.classList.toggle('bg-app-red/5', proSelected === pl);
+                el.style.boxShadow = proSelected === pl ? '0 0 20px rgba(225,6,0,0.2)' : '';
+            });
+
+            document.getElementById('proBenefits').innerHTML = PRO_BENEFITS.map(b => `
+                <div class="card-ui p-5 flex gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-app-red/10 text-app-red flex items-center justify-center flex-shrink-0"><i data-lucide="${b.icon}" class="w-5 h-5"></i></div>
+                    <div><p class="font-semibold text-sm">${b.t}</p><p class="text-xs text-app-muted mt-1">${b.d}</p></div>
+                </div>`).join('');
+
+            const cell = v => v === true ? '<i data-lucide="check" class="w-4 h-4 text-green-500 mx-auto"></i>' : v === false ? '<span class="text-app-muted">—</span>' : `<span class="text-xs font-semibold">${v}</span>`;
+            document.getElementById('proCompareBody').innerHTML = PRO_COMPARE.map(r => `
+                <tr><td class="py-3 pr-4">${r.r}</td><td class="py-3 text-center">${cell(r.f)}</td><td class="py-3 text-center bg-app-red/5">${cell(r.p)}</td></tr>`).join('');
+
+            const badge = document.getElementById('proStatusBadge');
+            if (isPro) {
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span> Pro ativo';
+                badge.classList.add('border-green-500/40');
+                document.getElementById('proHeroTitle').textContent = 'Você é Pro 🎉';
+                document.getElementById('proHeroSub').textContent = `Plano ${proPlan} ativo. Todos os achadinhos exclusivos, kits e cupons estão liberados.`;
+                document.getElementById('proManageInfo').textContent = proPlan === 'anual' ? `Plano anual · ${brl(PRO_PRICES.anual)}/ano` : `Plano mensal · ${brl(PRO_PRICES.mensal)}/mês`;
+            } else {
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-app-muted"></span> Plano Grátis';
+                badge.classList.remove('border-green-500/40');
+                document.getElementById('proHeroTitle').textContent = 'Desbloqueie o máximo do app';
+                document.getElementById('proHeroSub').textContent = 'Achadinhos exclusivos, cupons antecipados, alertas de preço e favoritos ilimitados. 7 dias grátis.';
+                document.getElementById('proCtaInfo').textContent = proSelected === 'anual' ? `Depois ${brl(PRO_PRICES.anual)}/ano. Cancele a qualquer momento.` : `Depois ${brl(PRO_PRICES.mensal)}/mês. Cancele a qualquer momento.`;
+            }
+            document.getElementById('proPlansBlock').classList.toggle('hidden', isPro);
+            document.getElementById('proCtaBlock').classList.toggle('hidden', isPro);
+            document.getElementById('proManageBlock').classList.toggle('hidden', !isPro);
+            document.getElementById('sidebarPlanLabel').textContent = isPro ? 'Pro Plan' : 'Free Plan';
+            document.getElementById('sidebarPlanLabel').classList.toggle('text-app-red', isPro);
+            refreshIcons();
+        }
+
+        function openCheckout() {
+            const brl = n => 'R$ ' + formatBRL(n);
+            document.getElementById('checkoutInfo').textContent = proSelected === 'anual'
+                ? `Plano Anual · 7 dias grátis, depois ${brl(PRO_PRICES.anual)}/ano.`
+                : `Plano Mensal · 7 dias grátis, depois ${brl(PRO_PRICES.mensal)}/mês.`;
+            document.getElementById('checkout-modal').classList.remove('hidden');
+            refreshIcons();
+        }
+        function closeCheckout() { document.getElementById('checkout-modal').classList.add('hidden'); }
+
+        // Ponto de integração com o gateway de pagamento: chame activatePro() no retorno do pagamento aprovado.
+        function activatePro() {
+            isPro = true; proPlan = proSelected;
+            localStorage.setItem('organizeit_pro', 'true');
+            localStorage.setItem('organizeit_proPlan', proPlan);
+            closeCheckout();
+            achToast('Bem-vindo ao Pro! Tudo liberado.');
+            renderProView();
+            renderAchadinhos();
+        }
+        function cancelPro() {
+            if (!confirm('Cancelar sua assinatura Pro?')) return;
+            isPro = false;
+            localStorage.setItem('organizeit_pro', 'false');
+            achToast('Assinatura cancelada');
+            renderProView();
+            renderAchadinhos();
+        }
+
         // ================= Inicialização =================
         (function initWorkoutTitle() {
             const saved = localStorage.getItem('organizeit_workoutTitle');
@@ -1622,6 +2163,8 @@
         renderHabits();
         renderGoals();
         renderRoutines();
+        renderProView();
+        renderAchadinhos();
         updateDashboardPerformance();
 
         // ================= Chart.js Initialization =================
