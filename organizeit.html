@@ -2,7 +2,11 @@
 <html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0D0D0D">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Organize It | Micro SaaS</title>
     
     <!-- Tailwind CSS -->
@@ -156,6 +160,26 @@
         .ach-locked .ach-emoji { filter: blur(6px) grayscale(0.3); opacity: 0.5; }
         .ach-locked .ach-body { filter: blur(3px); opacity: 0.5; }
 
+        /* Mobile: barra de abas inferior */
+        .bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: rgba(20, 20, 20, 0.96);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+        .bnav-item { color: #A3A3A3; transition: color .2s ease, transform .2s ease; }
+        .bnav-item .bnav-ic { transition: transform .2s ease; }
+        .bnav-item.active { color: #E10600; }
+        .bnav-item.active .bnav-ic { transform: translateY(-2px); filter: drop-shadow(0 0 6px rgba(225,6,0,.6)); }
+        .bnav-item.active::after { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 22px; height: 3px; border-radius: 0 0 3px 3px; background: #E10600; box-shadow: 0 0 8px rgba(225,6,0,.6); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none; }
+        @media (max-width: 767px) {
+            .card-ui:hover { transform: none; }
+            #sidebar { padding-top: env(safe-area-inset-top, 0px); }
+            header { padding-top: env(safe-area-inset-top, 0px); height: calc(4rem + env(safe-area-inset-top, 0px)); }
+        }
+
         /* Progress Bar */
         .progress-bar-bg {
             background-color: #262626;
@@ -177,7 +201,7 @@
     <div id="mobile-overlay" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-64 bg-app-card border-r border-app-border flex flex-col fixed md:relative h-full z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+    <aside id="sidebar" class="w-72 md:w-64 bg-app-card border-r border-app-border flex flex-col fixed md:relative h-full z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 rounded-r-2xl md:rounded-none shadow-[8px_0_40px_rgba(0,0,0,0.6)] md:shadow-none">
         <!-- Logo -->
         <div class="h-20 flex items-center px-6 border-b border-app-border">
             <div class="flex items-center gap-3">
@@ -241,12 +265,12 @@
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-app-bg relative">
         <!-- Header -->
-        <header class="h-20 border-b border-app-border flex items-center justify-between px-6 lg:px-10 flex-shrink-0">
-            <div class="flex items-center gap-4">
-                <button class="md:hidden text-app-text hover:text-app-red transition-colors" onclick="toggleSidebar()">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
+        <header class="h-16 md:h-20 border-b border-app-border flex items-center justify-between px-4 md:px-6 lg:px-10 flex-shrink-0 gap-3">
+            <div class="flex items-center gap-3 md:gap-4 min-w-0">
+                <button class="md:hidden w-9 h-9 rounded-lg bg-app-card border border-app-border flex items-center justify-center text-app-text hover:text-app-red transition-colors shrink-0" onclick="toggleSidebar()">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
-                <h2 id="page-title" class="text-xl md:text-2xl font-bold tracking-wide">Dashboard Geral</h2>
+                <h2 id="page-title" class="text-lg md:text-2xl font-bold tracking-wide truncate">Dashboard Geral</h2>
             </div>
             
             <div class="flex items-center gap-4">
@@ -276,61 +300,61 @@
         </header>
 
         <!-- Scrollable Area -->
-        <div class="flex-1 overflow-y-auto p-6 pb-24 md:pb-10 lg:p-10">
+        <div id="content-scroll" class="flex-1 overflow-y-auto p-4 pb-32 md:p-6 md:pb-10 lg:p-10">
             
             <!-- ===================== VIEW: DASHBOARD ===================== -->
-            <section id="view-dashboard" class="view-section active space-y-6">
+            <section id="view-dashboard" class="view-section active space-y-4 md:space-y-6">
                 
                 <!-- Metrics Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6">
                     <!-- Finance -->
-                    <div class="card-ui p-6">
+                    <div class="card-ui p-4 md:p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <p class="text-app-muted text-sm font-medium">Saldo Atual</p>
-                                <h3 id="dashboardSaldo" class="text-2xl font-bold mt-1">R$ 14.250,00</h3>
+                                <h3 id="dashboardSaldo" class="text-lg md:text-2xl font-bold mt-1 truncate">R$ 14.250,00</h3>
                             </div>
                             <div class="p-2 bg-green-500/10 rounded text-green-500">
                                 <i data-lucide="trending-up" class="w-5 h-5"></i>
                             </div>
                         </div>
-                        <p class="text-xs text-app-muted">Receitas menos despesas registradas</p>
+                        <p class="text-xs text-app-muted hidden sm:block">Receitas menos despesas registradas</p>
                     </div>
 
                     <!-- Tasks -->
-                    <div class="card-ui p-6">
+                    <div class="card-ui p-4 md:p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <p class="text-app-muted text-sm font-medium">Tarefas Pendentes</p>
-                                <h3 id="dashPendingTasks" class="text-2xl font-bold mt-1">0</h3>
+                                <h3 id="dashPendingTasks" class="text-lg md:text-2xl font-bold mt-1 truncate">0</h3>
                             </div>
                             <div class="p-2 bg-app-red/10 rounded text-app-red shadow-[0_0_10px_rgba(225,6,0,0.2)]">
                                 <i data-lucide="alert-circle" class="w-5 h-5"></i>
                             </div>
                         </div>
-                        <p id="dashHighPriorityTasks" class="text-xs text-app-muted">0 com prioridade alta</p>
+                        <p id="dashHighPriorityTasks" class="text-xs text-app-muted truncate">0 com prioridade alta</p>
                     </div>
 
                     <!-- Habits Streak -->
-                    <div class="card-ui p-6">
+                    <div class="card-ui p-4 md:p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <p class="text-app-muted text-sm font-medium">Maior Streak</p>
-                                <h3 id="dashMaxStreak" class="text-2xl font-bold mt-1">0 Dias</h3>
+                                <h3 id="dashMaxStreak" class="text-lg md:text-2xl font-bold mt-1 truncate">0 Dias</h3>
                             </div>
                             <div class="p-2 bg-orange-500/10 rounded text-orange-500">
                                 <i data-lucide="flame" class="w-5 h-5"></i>
                             </div>
                         </div>
-                        <p id="dashMaxStreakName" class="text-xs text-app-muted">Nenhum hábito cadastrado</p>
+                        <p id="dashMaxStreakName" class="text-xs text-app-muted truncate">Nenhum hábito cadastrado</p>
                     </div>
 
                     <!-- Performance Score -->
-                    <div class="card-ui p-6 relative overflow-hidden group">
+                    <div class="card-ui p-4 md:p-6 relative overflow-hidden group">
                         <div class="absolute -right-4 -top-4 w-24 h-24 bg-app-red/20 blur-2xl rounded-full group-hover:bg-app-red/30 transition-all"></div>
                         <p class="text-app-muted text-sm font-medium mb-2">Performance Score</p>
                         <div class="flex items-end gap-2">
-                            <h3 id="dashPerformanceScore" class="text-4xl font-black text-app-red glow-text">0</h3>
+                            <h3 id="dashPerformanceScore" class="text-3xl md:text-4xl font-black text-app-red glow-text">0</h3>
                             <span class="text-sm text-app-muted mb-1">/ 100</span>
                         </div>
                         <div class="w-full h-1.5 progress-bar-bg mt-4">
@@ -340,30 +364,30 @@
                 </div>
 
                 <!-- Charts Grid -->
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 md:gap-6">
                     <!-- Line Chart -->
-                    <div class="card-ui p-6 xl:col-span-2">
+                    <div class="card-ui p-4 md:p-6 xl:col-span-2">
                         <h3 class="font-semibold mb-6 flex items-center gap-2">
                             <i data-lucide="activity" class="text-app-red w-4 h-4"></i> Produtividade Semanal
                         </h3>
-                        <div class="h-64">
+                        <div class="h-52 md:h-64">
                             <canvas id="chartProductivity"></canvas>
                         </div>
                     </div>
 
                     <!-- Pie Chart -->
-                    <div class="card-ui p-6">
+                    <div class="card-ui p-4 md:p-6">
                         <h3 class="font-semibold mb-6 flex items-center gap-2">
                             <i class="text-app-red w-4 h-4" data-lucide="pie-chart"></i> Gastos por Categoria
                         </h3>
-                        <div class="h-64 flex justify-center">
+                        <div class="h-52 md:h-64 flex justify-center">
                             <canvas id="chartExpenses"></canvas>
                         </div>
                     </div>
                 </div>
 
                 <!-- Goals Progress -->
-                <div class="card-ui p-6">
+                <div class="card-ui p-4 md:p-6">
                     <h3 class="font-semibold mb-6 flex items-center gap-2">
                         <i class="text-app-red w-4 h-4" data-lucide="target"></i> Progresso de Metas
                     </h3>
@@ -374,31 +398,31 @@
             </section>
 
             <!-- ===================== VIEW: FINANÇAS ===================== -->
-            <section id="view-finances" class="view-section space-y-6">
+            <section id="view-finances" class="view-section space-y-4 md:space-y-6">
                 <!-- Toolbar -->
-                <div class="flex flex-col sm:flex-row justify-between gap-4">
-                    <select id="financeMonthFilter" onchange="renderTransactions()" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2.5 outline-none">
+                <div class="flex flex-row justify-between items-center gap-3">
+                    <select id="financeMonthFilter" onchange="renderTransactions()" class="flex-1 md:flex-none bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2.5 outline-none">
                         <option value="all">Todos os meses</option>
                     </select>
                     <button onclick="exportTransactions()" class="bg-app-card border border-app-border hover:border-app-red text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2">
-                        <i data-lucide="download" class="w-4 h-4"></i> Exportar CSV
+                        <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden sm:inline">Exportar CSV</span><span class="sm:hidden">CSV</span>
                     </button>
                 </div>
 
                 <!-- Add Transaction Form -->
                 <div class="card-ui p-4 flex flex-col gap-3">
                     <div class="flex flex-col md:flex-row gap-3">
-                        <div class="flex bg-app-bg border border-app-border rounded-lg p-1 shrink-0">
-                            <button type="button" id="txTypeExpenseBtn" onclick="setTxType('expense')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-app-red/20 text-app-red flex items-center gap-1">
+                        <div class="flex bg-app-bg border border-app-border rounded-lg p-1 shrink-0 w-full md:w-auto">
+                            <button type="button" id="txTypeExpenseBtn" onclick="setTxType('expense')" class="flex-1 md:flex-none justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors bg-app-red/20 text-app-red flex items-center gap-1">
                                 <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i> Despesa
                             </button>
-                            <button type="button" id="txTypeIncomeBtn" onclick="setTxType('income')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-app-muted flex items-center gap-1">
+                            <button type="button" id="txTypeIncomeBtn" onclick="setTxType('income')" class="flex-1 md:flex-none justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors text-app-muted flex items-center gap-1">
                                 <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Receita
                             </button>
                         </div>
                         <input id="txDesc" type="text" placeholder="Descrição (ex: Mercado, Salário...)" onkeydown="if(event.key==='Enter'){addTransaction();}" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
                     </div>
-                    <div class="flex flex-col md:flex-row gap-3">
+                    <div class="grid grid-cols-2 md:flex gap-3">
                         <input id="txValue" type="number" step="0.01" min="0" placeholder="Valor (R$)" onkeydown="if(event.key==='Enter'){addTransaction();}" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
                         <select id="txCategory" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red">
                             <option>Moradia</option>
@@ -409,35 +433,35 @@
                             <option>Salário</option>
                             <option>Outros</option>
                         </select>
-                        <input id="txDate" type="date" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red [color-scheme:dark]">
-                        <button onclick="addTransaction()" class="bg-app-red hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shrink-0 flex items-center justify-center gap-2">
+                        <input id="txDate" type="date" class="col-span-2 md:col-auto flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red [color-scheme:dark]">
+                        <button onclick="addTransaction()" class="col-span-2 md:col-auto bg-app-red hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shrink-0 flex items-center justify-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
                         </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="card-ui p-6 border-l-4 border-l-green-500">
-                        <p class="text-app-muted text-sm font-medium">Receitas</p>
-                        <h3 id="sumReceitas" class="text-2xl font-bold mt-1 text-green-500">R$ 0,00</h3>
+                <div class="grid grid-cols-3 gap-2 md:gap-6">
+                    <div class="card-ui p-3 md:p-6 border-l-4 border-l-green-500">
+                        <p class="text-app-muted text-[11px] md:text-sm font-medium">Receitas</p>
+                        <h3 id="sumReceitas" class="text-xs sm:text-sm md:text-2xl font-bold mt-1 text-green-500 truncate">R$ 0,00</h3>
                     </div>
-                    <div class="card-ui p-6 border-l-4 border-l-app-red">
-                        <p class="text-app-muted text-sm font-medium">Despesas</p>
-                        <h3 id="sumDespesas" class="text-2xl font-bold mt-1 text-app-red">R$ 0,00</h3>
+                    <div class="card-ui p-3 md:p-6 border-l-4 border-l-app-red">
+                        <p class="text-app-muted text-[11px] md:text-sm font-medium">Despesas</p>
+                        <h3 id="sumDespesas" class="text-xs sm:text-sm md:text-2xl font-bold mt-1 text-app-red truncate">R$ 0,00</h3>
                     </div>
-                    <div class="card-ui p-6 border-l-4 border-l-blue-500">
-                        <p class="text-app-muted text-sm font-medium">Balanço do Mês</p>
-                        <h3 id="sumBalanco" class="text-2xl font-bold mt-1 text-blue-500">R$ 0,00</h3>
+                    <div class="card-ui p-3 md:p-6 border-l-4 border-l-blue-500">
+                        <p class="text-app-muted text-[11px] md:text-sm font-medium truncate">Balanço do Mês</p>
+                        <h3 id="sumBalanco" class="text-xs sm:text-sm md:text-2xl font-bold mt-1 text-blue-500 truncate">R$ 0,00</h3>
                     </div>
                 </div>
 
                 <div class="card-ui overflow-hidden">
-                    <div class="p-6 border-b border-app-border flex justify-between items-center">
+                    <div class="p-4 md:p-6 border-b border-app-border flex justify-between items-center">
                         <h3 class="font-semibold">Transações Recentes</h3>
                         <p id="financePeriodLabel" class="text-xs text-app-muted"></p>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-app-muted table-fixed">
+                        <table class="w-full text-sm text-left text-app-muted md:table-fixed">
                             <colgroup>
                                 <col class="w-[36%]">
                                 <col class="w-[18%]">
@@ -447,11 +471,11 @@
                             </colgroup>
                             <thead class="text-xs uppercase bg-[#1A1A1A] text-app-muted border-b border-app-border">
                                 <tr>
-                                    <th scope="col" class="px-6 py-4 rounded-tl-lg">Descrição</th>
-                                    <th scope="col" class="px-6 py-4">Categoria</th>
-                                    <th scope="col" class="px-6 py-4">Data</th>
-                                    <th scope="col" class="px-6 py-4 text-right">Valor</th>
-                                    <th scope="col" class="px-6 py-4 text-center rounded-tr-lg">Ação</th>
+                                    <th scope="col" class="px-3 md:px-6 py-3 md:py-4 rounded-tl-lg">Descrição</th>
+                                    <th scope="col" class="hidden md:table-cell px-6 py-4">Categoria</th>
+                                    <th scope="col" class="hidden md:table-cell px-6 py-4">Data</th>
+                                    <th scope="col" class="px-3 md:px-6 py-3 md:py-4 text-right">Valor</th>
+                                    <th scope="col" class="px-2 md:px-6 py-3 md:py-4 text-center rounded-tr-lg"><span class="hidden md:inline">Ação</span></th>
                                 </tr>
                             </thead>
                             <tbody id="transactions-body"></tbody>
@@ -461,17 +485,17 @@
             </section>
 
             <!-- ===================== VIEW: TAREFAS ===================== -->
-            <section id="view-tasks" class="view-section space-y-6">
+            <section id="view-tasks" class="view-section space-y-4 md:space-y-6">
                 <!-- Add task input -->
-                <div class="card-ui p-4 flex flex-col md:flex-row gap-4 items-center">
+                <div class="card-ui p-4 flex flex-col md:flex-row gap-3 md:gap-4 items-center">
                     <input id="taskInput" type="text" onkeydown="if(event.key==='Enter'){addTask();}" placeholder="Adicione uma nova tarefa (pressione Enter)" class="w-full bg-transparent border-none text-white focus:ring-0 outline-none text-base placeholder-app-muted">
                     <div class="flex gap-2 w-full md:w-auto shrink-0">
-                        <select id="taskPrioritySelect" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2 outline-none">
+                        <select id="taskPrioritySelect" class="flex-1 md:flex-none bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2 outline-none">
                             <option value="high">Alta</option>
                             <option value="medium" selected>Média</option>
                             <option value="low">Baixa</option>
                         </select>
-                        <input id="taskDateInput" type="date" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2 outline-none [color-scheme:dark]">
+                        <input id="taskDateInput" type="date" class="flex-1 md:flex-none min-w-0 bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2 outline-none [color-scheme:dark]">
                         <button onclick="addTask()" class="bg-app-red hover:bg-red-700 text-white p-2 rounded-lg transition-colors flex-shrink-0">
                             <i data-lucide="plus" class="w-5 h-5"></i>
                         </button>
@@ -483,7 +507,7 @@
             </section>
 
             <!-- ===================== VIEW: ROTINA ===================== -->
-            <section id="view-routine" class="view-section space-y-6">
+            <section id="view-routine" class="view-section space-y-4 md:space-y-6">
                 <!-- Add routine input -->
                 <div class="card-ui p-4 flex flex-col gap-3">
                     <div class="flex flex-col md:flex-row gap-3 items-center">
@@ -519,8 +543,8 @@
             </section>
 
             <!-- Routine Edit Modal -->
-            <div id="routine-modal" onclick="if(event.target===this) closeRoutineModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
-                <div class="card-ui w-full max-w-md p-6">
+            <div id="routine-modal" onclick="if(event.target===this) closeRoutineModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+                <div class="card-ui w-full max-w-md p-5 md:p-6 !rounded-b-none md:!rounded-b-xl max-h-[92vh] overflow-y-auto" style="padding-bottom:calc(1.25rem + env(safe-area-inset-bottom,0px))">
                     <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="alarm-clock" class="w-5 h-5 text-app-red"></i> Editar Item da Rotina</h3>
                     <div class="space-y-3">
                         <input id="routineModalTime" type="time" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red [color-scheme:dark]">
@@ -538,7 +562,7 @@
             </div>
 
             <!-- ===================== VIEW: TREINOS ===================== -->
-            <section id="view-workouts" class="view-section space-y-6">
+            <section id="view-workouts" class="view-section space-y-4 md:space-y-6">
 
                 <div class="flex justify-between items-center">
                     <h3 id="workoutTitle" contenteditable="true" spellcheck="false" onblur="saveWorkoutTitle()" onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();}" class="font-semibold text-lg outline-none focus:text-app-red border-b border-dashed border-transparent focus:border-app-border cursor-text" title="Clique para renomear seu treino">Meu Treino</h3>
@@ -547,7 +571,7 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="workout-grid">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6" id="workout-grid">
                     <!-- Add Exercise Card -->
                     <div id="add-exercise-card" onclick="startAddExercise(this)" class="card-ui p-5 flex flex-col items-center justify-center text-center cursor-pointer border-dashed border-2 hover:bg-[#1A1A1A]">
                         <div class="w-12 h-12 rounded-full bg-app-red/10 text-app-red flex items-center justify-center mb-3">
@@ -560,7 +584,7 @@
             </section>
 
             <!-- ===================== VIEW: HÁBITOS ===================== -->
-            <section id="view-habits" class="view-section space-y-6">
+            <section id="view-habits" class="view-section space-y-4 md:space-y-6">
 
                 <!-- Add habit input -->
                 <div class="card-ui p-4 flex flex-col md:flex-row gap-4 items-center">
@@ -597,7 +621,7 @@
             </section>
 
             <!-- ===================== VIEW: METAS ===================== -->
-            <section id="view-goals" class="view-section space-y-6">
+            <section id="view-goals" class="view-section space-y-4 md:space-y-6">
 
                 <div class="flex justify-end">
                     <button onclick="openGoalModal()" class="bg-app-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(225,6,0,0.3)] text-sm flex items-center gap-2">
@@ -605,14 +629,14 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="goals-grid"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6" id="goals-grid"></div>
             </section>
 
             <!-- ===================== VIEW: ACHADINHOS ===================== -->
-            <section id="view-achadinhos" class="view-section space-y-6">
+            <section id="view-achadinhos" class="view-section space-y-4 md:space-y-6">
 
                 <!-- Banner -->
-                <div class="card-ui p-6 relative overflow-hidden">
+                <div class="card-ui p-4 md:p-6 relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 w-48 h-48 bg-app-red/20 blur-3xl rounded-full"></div>
                     <div class="relative flex flex-col md:flex-row md:items-center gap-4">
                         <div class="flex-1">
@@ -620,16 +644,16 @@
                             <h3 class="text-xl md:text-2xl font-bold">Achadinhos para o seu treino</h3>
                             <p class="text-app-muted text-sm mt-1">Acessórios, roupas e itens de recuperação com bom custo-benefício. Atualizado toda semana.</p>
                         </div>
-                        <div class="flex gap-3">
-                            <div class="card-ui px-4 py-3 text-center min-w-[90px]">
+                        <div class="flex gap-2 md:gap-3">
+                            <div class="card-ui flex-1 md:flex-none px-3 md:px-4 py-3 text-center md:min-w-[90px]">
                                 <p id="achTotalCount" class="text-2xl font-bold text-app-red glow-text">0</p>
                                 <p class="text-[11px] text-app-muted">produtos</p>
                             </div>
-                            <div class="card-ui px-4 py-3 text-center min-w-[90px]">
+                            <div class="card-ui flex-1 md:flex-none px-3 md:px-4 py-3 text-center md:min-w-[90px]">
                                 <p id="achMaxOff" class="text-2xl font-bold text-app-red glow-text">0%</p>
                                 <p class="text-[11px] text-app-muted">desc. máx.</p>
                             </div>
-                            <div class="card-ui px-4 py-3 text-center min-w-[90px]">
+                            <div class="card-ui flex-1 md:flex-none px-3 md:px-4 py-3 text-center md:min-w-[90px]">
                                 <p id="achFavCount" class="text-2xl font-bold">0</p>
                                 <p class="text-[11px] text-app-muted">favoritos</p>
                             </div>
@@ -643,7 +667,7 @@
                         <h3 class="font-semibold flex items-center gap-2"><i data-lucide="package" class="text-app-red w-4 h-4"></i> Kits prontos</h3>
                         <span class="text-xs text-app-muted">Monte de uma vez</span>
                     </div>
-                    <div id="kits-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                    <div id="kits-grid" class="flex gap-3 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-4 px-4 pb-1 md:grid md:grid-cols-3 md:gap-6 md:mx-0 md:px-0 md:pb-0 md:overflow-visible"></div>
                 </div>
 
                 <!-- Busca e filtros -->
@@ -653,7 +677,8 @@
                             <i data-lucide="search" class="w-4 h-4 text-app-muted"></i>
                             <input id="achSearch" type="text" oninput="renderAchadinhos()" placeholder="Buscar achadinho (garrafa, legging, fone...)" class="w-full bg-transparent border-none text-white outline-none text-sm placeholder-app-muted">
                         </div>
-                        <select id="achSort" onchange="renderAchadinhos()" class="bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg px-3 py-2.5 outline-none focus:border-app-red">
+                        <div class="flex gap-3 md:contents">
+                        <select id="achSort" onchange="renderAchadinhos()" class="flex-1 md:flex-none bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg px-3 py-2.5 outline-none focus:border-app-red">
                             <option value="relevancia">Relevância</option>
                             <option value="vendidos">Mais vendidos</option>
                             <option value="menor">Menor preço</option>
@@ -663,23 +688,24 @@
                         <button onclick="toggleAchFavOnly()" id="achFavToggle" class="bg-app-card border border-app-border hover:border-app-red text-white px-4 py-2.5 rounded-lg text-sm flex items-center justify-center gap-2 transition-colors">
                             <i data-lucide="heart" class="w-4 h-4"></i> Favoritos
                         </button>
+                        </div>
                     </div>
-                    <div id="achChips" class="flex gap-2 flex-wrap"></div>
+                    <div id="achChips" class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap"></div>
                 </div>
 
                 <!-- Grid de produtos -->
                 <div class="flex justify-between items-center">
                     <p id="achResultLabel" class="text-sm text-app-muted">0 resultados</p>
-                    <p id="achProHint" class="text-xs text-app-muted flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3 text-app-red"></i> Itens marcados são exclusivos do Plano Pro</p>
+                    <p id="achProHint" class="text-xs text-app-muted hidden sm:flex items-center gap-1 text-right"><i data-lucide="lock" class="w-3 h-3 text-app-red"></i> Itens marcados são exclusivos do Plano Pro</p>
                 </div>
-                <div id="ach-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"></div>
+                <div id="ach-grid" class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6"></div>
             </section>
 
             <!-- ===================== VIEW: PLANO PRO ===================== -->
-            <section id="view-pro" class="view-section space-y-6">
+            <section id="view-pro" class="view-section space-y-4 md:space-y-6">
 
                 <!-- Hero -->
-                <div class="card-ui p-6 md:p-8 relative overflow-hidden">
+                <div class="card-ui p-5 md:p-8 relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 w-64 h-64 bg-app-red/20 blur-3xl rounded-full"></div>
                     <div class="relative flex flex-col md:flex-row md:items-center gap-6">
                         <div class="w-14 h-14 rounded-xl bg-app-red flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)] flex-shrink-0">
@@ -699,7 +725,7 @@
                 <!-- Escolha de plano -->
                 <div id="proPlansBlock">
                     <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="credit-card" class="text-app-red w-4 h-4"></i> Escolha seu plano</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <button onclick="selectProPlan('anual')" id="plan-anual" class="card-ui p-6 text-left relative">
                             <span class="absolute -top-3 left-5 bg-app-red text-white text-[10px] font-bold px-2 py-1 rounded shadow-[0_0_10px_rgba(225,6,0,0.4)]">MAIS POPULAR</span>
                             <p class="text-app-muted text-sm font-medium">Anual</p>
@@ -717,7 +743,7 @@
                 <!-- Benefícios -->
                 <div>
                     <h3 class="font-semibold mb-4 flex items-center gap-2"><i data-lucide="sparkles" class="text-app-red w-4 h-4"></i> O que você ganha</h3>
-                    <div id="proBenefits" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+                    <div id="proBenefits" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6"></div>
                 </div>
 
                 <!-- Comparativo -->
@@ -762,13 +788,13 @@
             </section>
 
             <!-- Product Modal -->
-            <div id="product-modal" onclick="if(event.target===this) closeProductModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
-                <div id="product-modal-body" class="card-ui w-full max-w-md p-6"></div>
+            <div id="product-modal" onclick="if(event.target===this) closeProductModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+                <div id="product-modal-body" class="card-ui w-full max-w-md p-5 md:p-6 !rounded-b-none md:!rounded-b-xl max-h-[92vh] overflow-y-auto" style="padding-bottom:calc(1.25rem + env(safe-area-inset-bottom,0px))"></div>
             </div>
 
             <!-- Checkout Modal -->
-            <div id="checkout-modal" onclick="if(event.target===this) closeCheckout()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
-                <div class="card-ui w-full max-w-md p-6">
+            <div id="checkout-modal" onclick="if(event.target===this) closeCheckout()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+                <div class="card-ui w-full max-w-md p-5 md:p-6 !rounded-b-none md:!rounded-b-xl max-h-[92vh] overflow-y-auto" style="padding-bottom:calc(1.25rem + env(safe-area-inset-bottom,0px))">
                     <h3 class="text-lg font-bold mb-1 flex items-center gap-2"><i data-lucide="crown" class="w-5 h-5 text-app-red"></i> Confirmar assinatura</h3>
                     <p id="checkoutInfo" class="text-sm text-app-muted mb-5">Plano Anual · 7 dias grátis, depois R$ 79,90/ano.</p>
                     <div class="space-y-2">
@@ -788,8 +814,8 @@
             </div>
 
             <!-- Goal Creation Modal -->
-            <div id="goal-modal" onclick="if(event.target===this) closeGoalModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
-                <div class="card-ui w-full max-w-md p-6">
+            <div id="goal-modal" onclick="if(event.target===this) closeGoalModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-end md:items-center justify-center p-0 md:p-4">
+                <div class="card-ui w-full max-w-md p-5 md:p-6 !rounded-b-none md:!rounded-b-xl max-h-[92vh] overflow-y-auto" style="padding-bottom:calc(1.25rem + env(safe-area-inset-bottom,0px))">
                     <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="target" class="w-5 h-5 text-app-red"></i> Nova Meta</h3>
                     <div class="space-y-3">
                         <input id="goalTitleInput" type="text" placeholder="Título da meta" onkeydown="if(event.key==='Enter'){confirmAddGoal();}" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
@@ -812,9 +838,30 @@
     </main>
 
     <!-- Mobile Floating Action Button -->
-    <button onclick="quickAdd()" class="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-app-red hover:bg-red-700 text-white flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)] transition-transform active:scale-95">
+    <button id="fab" onclick="quickAdd()" class="md:hidden fixed right-4 z-30 w-12 h-12 rounded-full bg-app-red hover:bg-red-700 text-white flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)] transition-transform active:scale-95" style="bottom:calc(4.75rem + env(safe-area-inset-bottom,0px))" data-fab="1">
         <i data-lucide="plus" class="w-6 h-6"></i>
     </button>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav id="bottom-nav" class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-nav border-t border-app-border" aria-label="Navegação">
+        <div class="grid grid-cols-5 h-16">
+            <button onclick="switchView('dashboard')" data-bnav="dashboard" class="bnav-item relative flex flex-col items-center justify-center gap-1 text-[10px] font-semibold">
+                <i data-lucide="layout-dashboard" class="bnav-ic w-5 h-5"></i> Início
+            </button>
+            <button onclick="switchView('finances')" data-bnav="finances" class="bnav-item relative flex flex-col items-center justify-center gap-1 text-[10px] font-semibold">
+                <i data-lucide="wallet" class="bnav-ic w-5 h-5"></i> Finanças
+            </button>
+            <button onclick="switchView('tasks')" data-bnav="tasks" class="bnav-item relative flex flex-col items-center justify-center gap-1 text-[10px] font-semibold">
+                <i data-lucide="check-square" class="bnav-ic w-5 h-5"></i> Tarefas
+            </button>
+            <button onclick="switchView('achadinhos')" data-bnav="achadinhos" class="bnav-item relative flex flex-col items-center justify-center gap-1 text-[10px] font-semibold">
+                <i data-lucide="shopping-bag" class="bnav-ic w-5 h-5"></i> Achados
+            </button>
+            <button onclick="toggleSidebar()" data-bnav="more" class="bnav-item relative flex flex-col items-center justify-center gap-1 text-[10px] font-semibold">
+                <i data-lucide="menu" class="bnav-ic w-5 h-5"></i> Mais
+            </button>
+        </div>
+    </nav>
 
     <!-- JS Logic -->
     <script>
@@ -857,6 +904,17 @@
 
             // Add active class to selected nav item
             document.getElementById(`nav-${viewId}`).classList.add('active');
+
+            // Mobile bottom nav
+            const bnavIds = ['dashboard', 'finances', 'tasks', 'achadinhos'];
+            document.querySelectorAll('[data-bnav]').forEach(el => {
+                const key = el.dataset.bnav;
+                el.classList.toggle('active', key === viewId || (key === 'more' && !bnavIds.includes(viewId)));
+            });
+            const scrollArea = document.getElementById('content-scroll');
+            if (scrollArea) scrollArea.scrollTop = 0;
+            const fab = document.getElementById('fab');
+            if (fab) fab.classList.toggle('hidden', viewId === 'pro');
 
             // Close mobile sidebar if open
             const sidebarEl = document.getElementById('sidebar');
@@ -961,8 +1019,8 @@
                     `;
                 }
                 return `
-                <div class="card-ui p-4 flex items-center justify-between gap-4 group ${t.done ? 'opacity-50' : ''}">
-                    <div class="flex items-center gap-4 flex-1">
+                <div class="card-ui p-4 flex items-center justify-between gap-3 md:gap-4 group ${t.done ? 'opacity-50' : ''}">
+                    <div class="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                         <input type="checkbox" class="custom-checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})">
                         <div>
                             <h4 class="${t.done ? 'text-app-muted line-through' : 'text-white'} font-medium group-hover:text-app-red transition-colors">${t.title}</h4>
@@ -971,8 +1029,8 @@
                             </p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        ${!t.done ? `<span class="${priorityMeta[t.priority].classes} text-xs px-2 py-1 rounded">${priorityMeta[t.priority].label}</span>` : ''}
+                    <div class="flex items-center gap-2 md:gap-4 shrink-0">
+                        ${!t.done ? `<span class="${priorityMeta[t.priority].classes} text-[10px] md:text-xs px-2 py-1 rounded whitespace-nowrap">${priorityMeta[t.priority].label}</span>` : ''}
                         <div class="flex gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <button class="text-app-muted hover:text-white" onclick="editTask(${t.id})"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                             <button class="text-app-muted hover:text-app-red" onclick="deleteTask(${t.id})"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -1154,24 +1212,22 @@
 
                 const headerRow = `
                     <tr class="bg-[#1A1A1A]">
-                        <td colspan="3" class="px-6 py-3 font-semibold text-white text-sm">${monthLabel}</td>
-                        <td class="px-6 py-3 text-right font-semibold text-sm font-mono tabular-nums ${monthTotal >= 0 ? 'text-green-500' : 'text-app-red'}">${monthTotal >= 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(monthTotal))}</td>
-                        <td class="px-6 py-3"></td>
+                        <td colspan="5" class="px-3 md:px-6 py-3"><div class="flex justify-between items-center gap-3"><span class="font-semibold text-white text-sm">${monthLabel}</span><span class="font-semibold text-sm font-mono tabular-nums ${monthTotal >= 0 ? 'text-green-500' : 'text-app-red'}">${monthTotal >= 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(monthTotal))}</span></div></td>
                     </tr>
                 `;
 
                 const rows = monthTxs.map(tx => `
                     <tr class="border-b border-app-border hover:bg-[#1A1A1A] transition-colors">
-                        <td class="px-6 py-4 font-medium text-white">
+                        <td class="px-3 md:px-6 py-3 md:py-4 font-medium text-white">
                             <div class="flex items-center gap-3 truncate">
                                 <div class="p-2 bg-app-card rounded shrink-0"><i data-lucide="${tx.icon}" class="w-4 h-4 text-white"></i></div>
-                                <span class="truncate">${tx.desc}</span>
+                                <div class="min-w-0"><span class="block truncate">${tx.desc}</span><span class="md:hidden block text-[11px] text-app-muted font-normal truncate">${tx.cat} · ${tx.date}</span></div>
                             </div>
                         </td>
-                        <td class="px-6 py-4"><span class="${tx.catClasses} text-xs px-2 py-1 rounded inline-block w-full max-w-[110px] text-center truncate align-middle">${tx.cat}</span></td>
-                        <td class="px-6 py-4 font-mono tabular-nums">${tx.date}</td>
-                        <td class="px-6 py-4 text-right font-mono tabular-nums ${tx.value >= 0 ? 'text-green-500' : 'text-app-red'} font-medium">${tx.value >= 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(tx.value))}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="hidden md:table-cell px-6 py-4"><span class="${tx.catClasses} text-xs px-2 py-1 rounded inline-block w-full max-w-[110px] text-center truncate align-middle">${tx.cat}</span></td>
+                        <td class="hidden md:table-cell px-6 py-4 font-mono tabular-nums">${tx.date}</td>
+                        <td class="px-3 md:px-6 py-3 md:py-4 text-right font-mono tabular-nums whitespace-nowrap ${tx.value >= 0 ? 'text-green-500' : 'text-app-red'} font-medium">${tx.value >= 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(tx.value))}</td>
+                        <td class="px-2 md:px-6 py-3 md:py-4 text-center">
                             <button class="text-app-muted hover:text-app-red" onclick="deleteTransaction(${tx.id})"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button>
                         </td>
                     </tr>
@@ -1196,7 +1252,7 @@
             document.getElementById('sumDespesas').innerText = `R$ ${formatBRL(expense)}`;
             const balEl = document.getElementById('sumBalanco');
             balEl.innerText = balance === 0 ? `R$ ${formatBRL(0)}` : `${balance > 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(balance))}`;
-            balEl.className = `text-2xl font-bold mt-1 ${balance >= 0 ? 'text-blue-500' : 'text-app-red'}`;
+            balEl.className = `text-xs sm:text-sm md:text-2xl font-bold mt-1 truncate ${balance >= 0 ? 'text-blue-500' : 'text-app-red'}`;
 
             // Dashboard's overall balance always reflects every transaction, regardless of the Finanças month filter
             const allIncome = transactions.filter(t => t.value > 0).reduce((s, t) => s + t.value, 0);
@@ -1896,15 +1952,15 @@
             const locked = achLocked(p);
             return `
                 <div onclick="openProduct('${p.id}')" class="card-ui overflow-hidden cursor-pointer relative flex flex-col ${locked ? 'ach-locked' : ''}">
-                    <div class="h-36 bg-[#1A1A1A] flex items-center justify-center text-6xl relative">
+                    <div class="h-28 md:h-36 bg-[#1A1A1A] flex items-center justify-center text-5xl md:text-6xl relative">
                         <span class="ach-emoji">${p.emoji}</span>
-                        ${achOff(p) ? `<span class="absolute top-3 left-3 bg-app-red text-white text-[11px] font-bold px-2 py-1 rounded">-${achOff(p)}%</span>` : ''}
-                        ${p.tag && !locked ? `<span class="absolute top-3 right-3 bg-black/70 border border-app-border text-white text-[10px] font-semibold px-2 py-1 rounded">${esc(p.tag)}</span>` : ''}
-                        ${!locked ? `<button onclick="toggleAchFav('${p.id}', event)" class="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-black/70 border border-app-border flex items-center justify-center ${achIsFav(p.id) ? 'text-app-red border-app-red' : 'text-app-muted'} hover:text-app-red transition-colors" title="Favoritar"><i data-lucide="heart" class="w-4 h-4" ${achIsFav(p.id) ? 'fill="#E10600"' : ''}></i></button>` : ''}
+                        ${achOff(p) ? `<span class="absolute top-2 left-2 md:top-3 md:left-3 bg-app-red text-white text-[10px] md:text-[11px] font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded">-${achOff(p)}%</span>` : ''}
+                        ${p.tag && !locked ? `<span class="absolute top-2 right-2 md:top-3 md:right-3 bg-black/70 border border-app-border text-white text-[9px] md:text-[10px] font-semibold px-1.5 md:px-2 py-0.5 md:py-1 rounded">${esc(p.tag)}</span>` : ''}
+                        ${!locked ? `<button onclick="toggleAchFav('${p.id}', event)" class="absolute bottom-2 right-2 md:bottom-3 md:right-3 w-8 h-8 rounded-full bg-black/70 border border-app-border flex items-center justify-center ${achIsFav(p.id) ? 'text-app-red border-app-red' : 'text-app-muted'} hover:text-app-red transition-colors" title="Favoritar"><i data-lucide="heart" class="w-4 h-4" ${achIsFav(p.id) ? 'fill="#E10600"' : ''}></i></button>` : ''}
                     </div>
-                    <div class="p-4 flex flex-col gap-1.5 flex-1 ach-body">
-                        <p class="text-sm font-semibold leading-snug line-clamp-2 min-h-[40px]">${esc(p.nome)}</p>
-                        <div class="flex items-baseline gap-2"><span class="text-app-red font-bold text-lg">R$ ${formatBRL(p.preco)}</span>${p.precoDe ? `<span class="text-xs text-app-muted line-through">R$ ${formatBRL(p.precoDe)}</span>` : ''}</div>
+                    <div class="p-3 md:p-4 flex flex-col gap-1.5 flex-1 ach-body">
+                        <p class="text-xs md:text-sm font-semibold leading-snug line-clamp-2 min-h-[32px] md:min-h-[40px]">${esc(p.nome)}</p>
+                        <div class="flex items-baseline gap-2 flex-wrap"><span class="text-app-red font-bold text-base md:text-lg">R$ ${formatBRL(p.preco)}</span>${p.precoDe ? `<span class="text-xs text-app-muted line-through">R$ ${formatBRL(p.precoDe)}</span>` : ''}</div>
                         <p class="text-xs text-app-muted flex items-center gap-1"><i data-lucide="star" class="w-3 h-3 text-yellow-500" fill="#EAB308"></i> ${p.nota.toFixed(1)} · ${achK(p.vendidos)} vendidos</p>
                         ${p.cupom && !locked ? `<span class="text-[10px] font-bold text-yellow-500 border border-dashed border-yellow-500/50 rounded px-2 py-0.5 w-fit flex items-center gap-1"><i data-lucide="ticket" class="w-3 h-3"></i> ${esc(p.cupom)}</span>` : ''}
                     </div>
@@ -1923,7 +1979,7 @@
             const sort = document.getElementById('achSort').value;
 
             document.getElementById('achChips').innerHTML = ACH_SUBS.map(s => `
-                <button onclick="achSelectSub('${s.id}')" class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${achSub === s.id ? 'bg-app-red/10 border-app-red text-app-red' : 'bg-[#1A1A1A] border-app-border text-app-muted hover:text-white'}">${s.nome}</button>`).join('');
+                <button onclick="achSelectSub('${s.id}')" class="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${achSub === s.id ? 'bg-app-red/10 border-app-red text-app-red' : 'bg-[#1A1A1A] border-app-border text-app-muted hover:text-white'}">${s.nome}</button>`).join('');
 
             let list = ACHADINHOS.slice();
             if (achSub !== 'todos') list = list.filter(p => p.sub === achSub);
@@ -1938,7 +1994,7 @@
             }
 
             document.getElementById('achResultLabel').textContent = `${list.length} resultado${list.length === 1 ? '' : 's'}`;
-            document.getElementById('achProHint').classList.toggle('hidden', isPro);
+            document.getElementById('achProHint').style.display = isPro ? 'none' : '';
             document.getElementById('achTotalCount').textContent = ACHADINHOS.length;
             document.getElementById('achMaxOff').textContent = Math.max(...ACHADINHOS.map(achOff)) + '%';
             document.getElementById('achFavCount').textContent = achFavs.length + (isPro ? '' : `/${FREE_FAV_LIMIT}`);
@@ -1955,7 +2011,7 @@
                 const total = itens.reduce((s, p) => s + p.preco, 0);
                 const locked = k.pro && !isPro;
                 return `
-                <div onclick="openKit('${k.id}')" class="card-ui p-5 cursor-pointer relative">
+                <div onclick="openKit('${k.id}')" class="card-ui p-4 md:p-5 cursor-pointer relative snap-start shrink-0 w-[74vw] sm:w-64 md:w-auto">
                     <div class="flex items-start justify-between mb-3">
                         <div class="w-10 h-10 rounded-lg bg-app-red/10 text-app-red flex items-center justify-center"><i data-lucide="${k.icon}" class="w-5 h-5"></i></div>
                         ${locked ? `<span class="text-[10px] font-bold bg-app-red text-white px-2 py-1 rounded flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> PRO</span>` : `<span class="text-sm font-bold">R$ ${formatBRL(total)}</span>`}
