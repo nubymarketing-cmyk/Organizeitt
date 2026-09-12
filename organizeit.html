@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organize It | Micro SaaS</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Config & Custom Styles -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        app: {
+                            bg: '#0D0D0D',
+                            card: '#141414',
+                            border: '#262626',
+                            red: '#E10600',
+                            redGlow: 'rgba(225, 6, 0, 0.15)',
+                            redGlowStrong: 'rgba(225, 6, 0, 0.3)',
+                            text: '#FFFFFF',
+                            muted: '#A3A3A3'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0D0D0D;
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D0D0D; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262626; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #E10600; 
+        }
+
+        /* Card Glow Animations */
+        .card-ui {
+            background-color: #141414;
+            border: 1px solid #262626;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .card-ui:hover {
+            border-color: #E10600;
+            box-shadow: 0 4px 20px rgba(225, 6, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px rgba(225, 6, 0, 0.5);
+        }
+
+        /* Sidebar active state */
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(225,6,0,0.1) 0%, transparent 100%);
+            border-left: 3px solid #E10600;
+            color: #FFFFFF;
+        }
+        
+        .nav-item {
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+        }
+
+        /* Checkbox custom */
+        .custom-checkbox {
+            appearance: none;
+            background-color: transparent;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.15em;
+            height: 1.15em;
+            border: 1px solid #A3A3A3;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #E10600;
+            background-color: #E10600;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            border-color: #E10600;
+        }
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+        
+        /* Views */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Progress Bar */
+        .progress-bar-bg {
+            background-color: #262626;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background-color: #E10600;
+            height: 100%;
+            border-radius: 999px;
+            box-shadow: 0 0 10px rgba(225, 6, 0, 0.5);
+            transition: width 1s ease-out;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-sm md:text-base">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/80 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 bg-app-card border-r border-app-border flex flex-col fixed md:relative h-full z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <!-- Logo -->
+        <div class="h-20 flex items-center px-6 border-b border-app-border">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-app-red flex items-center justify-center shadow-[0_0_15px_rgba(225,6,0,0.4)]">
+                    <i data-lucide="layers" class="text-white w-5 h-5"></i>
+                </div>
+                <h1 class="font-bold text-xl tracking-wider text-white">ORGANIZE<span class="text-app-red">IT</span></h1>
+            </div>
+            <button class="ml-auto md:hidden text-app-muted hover:text-white" onclick="toggleSidebar()">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 py-6 px-3 flex flex-col gap-2 overflow-y-auto">
+            <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+            </button>
+            <button onclick="switchView('finances')" id="nav-finances" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="wallet" class="w-5 h-5"></i> Finanças
+            </button>
+            <button onclick="switchView('tasks')" id="nav-tasks" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="check-square" class="w-5 h-5"></i> Tarefas
+            </button>
+            <button onclick="switchView('routine')" id="nav-routine" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="alarm-clock" class="w-5 h-5"></i> Rotina
+            </button>
+            <button onclick="switchView('workouts')" id="nav-workouts" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="dumbbell" class="w-5 h-5"></i> Treinos
+            </button>
+            <button onclick="switchView('habits')" id="nav-habits" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="repeat" class="w-5 h-5"></i> Hábitos
+            </button>
+            <button onclick="switchView('goals')" id="nav-goals" class="nav-item flex items-center gap-3 w-full text-left px-4 py-3 rounded-r-lg text-app-muted font-medium">
+                <i data-lucide="target" class="w-5 h-5"></i> Metas
+            </button>
+        </nav>
+
+        <!-- User Profile Minimal -->
+        <div class="p-4 border-t border-app-border">
+            <div class="flex items-center gap-3">
+                <img src="https://ui-avatars.com/api/?name=User&background=262626&color=E10600" alt="User" class="w-10 h-10 rounded-full border border-app-border">
+                <div>
+                    <p class="text-sm font-semibold">User_01</p>
+                    <p class="text-xs text-app-muted">Pro Plan</p>
+                </div>
+                <button onclick="logout()" class="ml-auto text-app-muted hover:text-app-red transition-colors">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-app-bg relative">
+        <!-- Header -->
+        <header class="h-20 border-b border-app-border flex items-center justify-between px-6 lg:px-10 flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-app-text hover:text-app-red transition-colors" onclick="toggleSidebar()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <h2 id="page-title" class="text-xl md:text-2xl font-bold tracking-wide">Dashboard Geral</h2>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button id="notif-bell" onclick="toggleNotifications(event)" class="w-10 h-10 rounded-full bg-app-card border border-app-border flex items-center justify-center hover:border-app-red transition-colors relative">
+                        <i data-lucide="bell" class="w-5 h-5 text-app-muted"></i>
+                        <span id="notif-dot" class="absolute top-2 right-2 w-2 h-2 bg-app-red rounded-full shadow-[0_0_8px_#E10600]"></span>
+                    </button>
+                    <div id="notif-panel" class="hidden absolute right-0 mt-2 w-72 card-ui p-3 z-50 text-sm">
+                        <p class="font-semibold mb-2 px-2">Notificações</p>
+                        <div class="space-y-1">
+                            <div class="px-2 py-2 rounded hover:bg-[#1A1A1A]">
+                                <p class="text-white">3 tarefas de alta prioridade vencem hoje.</p>
+                                <p class="text-xs text-app-muted">Há 2 horas</p>
+                            </div>
+                            <div class="px-2 py-2 rounded hover:bg-[#1A1A1A]">
+                                <p class="text-white">Sua meta "Reserva de Emergência" atingiu 40%.</p>
+                                <p class="text-xs text-app-muted">Ontem</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="quickAdd()" class="hidden md:flex items-center gap-2 bg-app-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(225,6,0,0.3)]">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Novo Registro
+                </button>
+            </div>
+        </header>
+
+        <!-- Scrollable Area -->
+        <div class="flex-1 overflow-y-auto p-6 pb-24 md:pb-10 lg:p-10">
+            
+            <!-- ===================== VIEW: DASHBOARD ===================== -->
+            <section id="view-dashboard" class="view-section active space-y-6">
+                
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    <!-- Finance -->
+                    <div class="card-ui p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-app-muted text-sm font-medium">Saldo Atual</p>
+                                <h3 id="dashboardSaldo" class="text-2xl font-bold mt-1">R$ 14.250,00</h3>
+                            </div>
+                            <div class="p-2 bg-green-500/10 rounded text-green-500">
+                                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-app-muted">Receitas menos despesas registradas</p>
+                    </div>
+
+                    <!-- Tasks -->
+                    <div class="card-ui p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-app-muted text-sm font-medium">Tarefas Pendentes</p>
+                                <h3 id="dashPendingTasks" class="text-2xl font-bold mt-1">0</h3>
+                            </div>
+                            <div class="p-2 bg-app-red/10 rounded text-app-red shadow-[0_0_10px_rgba(225,6,0,0.2)]">
+                                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p id="dashHighPriorityTasks" class="text-xs text-app-muted">0 com prioridade alta</p>
+                    </div>
+
+                    <!-- Habits Streak -->
+                    <div class="card-ui p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-app-muted text-sm font-medium">Maior Streak</p>
+                                <h3 id="dashMaxStreak" class="text-2xl font-bold mt-1">0 Dias</h3>
+                            </div>
+                            <div class="p-2 bg-orange-500/10 rounded text-orange-500">
+                                <i data-lucide="flame" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <p id="dashMaxStreakName" class="text-xs text-app-muted">Nenhum hábito cadastrado</p>
+                    </div>
+
+                    <!-- Performance Score -->
+                    <div class="card-ui p-6 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-app-red/20 blur-2xl rounded-full group-hover:bg-app-red/30 transition-all"></div>
+                        <p class="text-app-muted text-sm font-medium mb-2">Performance Score</p>
+                        <div class="flex items-end gap-2">
+                            <h3 id="dashPerformanceScore" class="text-4xl font-black text-app-red glow-text">0</h3>
+                            <span class="text-sm text-app-muted mb-1">/ 100</span>
+                        </div>
+                        <div class="w-full h-1.5 progress-bar-bg mt-4">
+                            <div id="dashPerformanceBar" class="progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <!-- Line Chart -->
+                    <div class="card-ui p-6 xl:col-span-2">
+                        <h3 class="font-semibold mb-6 flex items-center gap-2">
+                            <i data-lucide="activity" class="text-app-red w-4 h-4"></i> Produtividade Semanal
+                        </h3>
+                        <div class="h-64">
+                            <canvas id="chartProductivity"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Pie Chart -->
+                    <div class="card-ui p-6">
+                        <h3 class="font-semibold mb-6 flex items-center gap-2">
+                            <i class="text-app-red w-4 h-4" data-lucide="pie-chart"></i> Gastos por Categoria
+                        </h3>
+                        <div class="h-64 flex justify-center">
+                            <canvas id="chartExpenses"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals Progress -->
+                <div class="card-ui p-6">
+                    <h3 class="font-semibold mb-6 flex items-center gap-2">
+                        <i class="text-app-red w-4 h-4" data-lucide="target"></i> Progresso de Metas
+                    </h3>
+                    <div class="h-48">
+                        <canvas id="chartGoals"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== VIEW: FINANÇAS ===================== -->
+            <section id="view-finances" class="view-section space-y-6">
+                <!-- Toolbar -->
+                <div class="flex flex-col sm:flex-row justify-between gap-4">
+                    <select id="financeMonthFilter" onchange="renderTransactions()" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2.5 outline-none">
+                        <option value="all">Todos os meses</option>
+                    </select>
+                    <button onclick="exportTransactions()" class="bg-app-card border border-app-border hover:border-app-red text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exportar CSV
+                    </button>
+                </div>
+
+                <!-- Add Transaction Form -->
+                <div class="card-ui p-4 flex flex-col gap-3">
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <div class="flex bg-app-bg border border-app-border rounded-lg p-1 shrink-0">
+                            <button type="button" id="txTypeExpenseBtn" onclick="setTxType('expense')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-app-red/20 text-app-red flex items-center gap-1">
+                                <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i> Despesa
+                            </button>
+                            <button type="button" id="txTypeIncomeBtn" onclick="setTxType('income')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-app-muted flex items-center gap-1">
+                                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Receita
+                            </button>
+                        </div>
+                        <input id="txDesc" type="text" placeholder="Descrição (ex: Mercado, Salário...)" onkeydown="if(event.key==='Enter'){addTransaction();}" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <input id="txValue" type="number" step="0.01" min="0" placeholder="Valor (R$)" onkeydown="if(event.key==='Enter'){addTransaction();}" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
+                        <select id="txCategory" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red">
+                            <option>Moradia</option>
+                            <option>Alimentação</option>
+                            <option>Transporte</option>
+                            <option>Lazer</option>
+                            <option>Saúde</option>
+                            <option>Salário</option>
+                            <option>Outros</option>
+                        </select>
+                        <input id="txDate" type="date" class="flex-1 bg-app-bg border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red [color-scheme:dark]">
+                        <button onclick="addTransaction()" class="bg-app-red hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shrink-0 flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card-ui p-6 border-l-4 border-l-green-500">
+                        <p class="text-app-muted text-sm font-medium">Receitas</p>
+                        <h3 id="sumReceitas" class="text-2xl font-bold mt-1 text-green-500">R$ 0,00</h3>
+                    </div>
+                    <div class="card-ui p-6 border-l-4 border-l-app-red">
+                        <p class="text-app-muted text-sm font-medium">Despesas</p>
+                        <h3 id="sumDespesas" class="text-2xl font-bold mt-1 text-app-red">R$ 0,00</h3>
+                    </div>
+                    <div class="card-ui p-6 border-l-4 border-l-blue-500">
+                        <p class="text-app-muted text-sm font-medium">Balanço do Mês</p>
+                        <h3 id="sumBalanco" class="text-2xl font-bold mt-1 text-blue-500">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <div class="card-ui overflow-hidden">
+                    <div class="p-6 border-b border-app-border flex justify-between items-center">
+                        <h3 class="font-semibold">Transações Recentes</h3>
+                        <p id="financePeriodLabel" class="text-xs text-app-muted"></p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-app-muted table-fixed">
+                            <colgroup>
+                                <col class="w-[36%]">
+                                <col class="w-[18%]">
+                                <col class="w-[14%]">
+                                <col class="w-[20%]">
+                                <col class="w-[12%]">
+                            </colgroup>
+                            <thead class="text-xs uppercase bg-[#1A1A1A] text-app-muted border-b border-app-border">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4 rounded-tl-lg">Descrição</th>
+                                    <th scope="col" class="px-6 py-4">Categoria</th>
+                                    <th scope="col" class="px-6 py-4">Data</th>
+                                    <th scope="col" class="px-6 py-4 text-right">Valor</th>
+                                    <th scope="col" class="px-6 py-4 text-center rounded-tr-lg">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== VIEW: TAREFAS ===================== -->
+            <section id="view-tasks" class="view-section space-y-6">
+                <!-- Add task input -->
+                <div class="card-ui p-4 flex flex-col md:flex-row gap-4 items-center">
+                    <input id="taskInput" type="text" onkeydown="if(event.key==='Enter'){addTask();}" placeholder="Adicione uma nova tarefa (pressione Enter)" class="w-full bg-transparent border-none text-white focus:ring-0 outline-none text-base placeholder-app-muted">
+                    <div class="flex gap-2 w-full md:w-auto shrink-0">
+                        <select id="taskPrioritySelect" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2 outline-none">
+                            <option value="high">Alta</option>
+                            <option value="medium" selected>Média</option>
+                            <option value="low">Baixa</option>
+                        </select>
+                        <input id="taskDateInput" type="date" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2 outline-none [color-scheme:dark]">
+                        <button onclick="addTask()" class="bg-app-red hover:bg-red-700 text-white p-2 rounded-lg transition-colors flex-shrink-0">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Task List -->
+                <div class="space-y-3" id="task-list"></div>
+            </section>
+
+            <!-- ===================== VIEW: ROTINA ===================== -->
+            <section id="view-routine" class="view-section space-y-6">
+                <!-- Add routine input -->
+                <div class="card-ui p-4 flex flex-col gap-3">
+                    <div class="flex flex-col md:flex-row gap-3 items-center">
+                        <input id="routineTimeInput" type="time" value="08:00" class="bg-app-card border border-app-border text-white text-sm rounded-lg focus:ring-app-red focus:border-app-red block p-2.5 outline-none [color-scheme:dark] shrink-0 w-full md:w-auto">
+                        <input id="routineTitleInput" type="text" onkeydown="if(event.key==='Enter'){addRoutine();}" placeholder="Adicione um item da rotina (ex: Acordar, Meditar, Academia...)" class="w-full bg-transparent border-none text-white focus:ring-0 outline-none text-base placeholder-app-muted">
+                        <button onclick="addRoutine()" class="bg-app-red hover:bg-red-700 text-white p-2.5 rounded-lg transition-colors flex-shrink-0 w-full md:w-auto flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> <span class="md:hidden">Adicionar</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap pt-1 border-t border-app-border">
+                        <span class="text-xs text-app-muted mr-1">Repetir em:</span>
+                        <div id="routineAddDays" class="flex gap-1.5"></div>
+                        <button type="button" onclick="setAllAddRoutineDays(true)" class="text-xs text-app-muted hover:text-white underline ml-1">Todos</button>
+                        <button type="button" onclick="setAllAddRoutineDays(false)" class="text-xs text-app-muted hover:text-white underline">Nenhum</button>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div class="card-ui p-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-semibold flex items-center gap-2"><i data-lucide="alarm-clock" class="text-app-red w-4 h-4"></i> Progresso de Hoje</h3>
+                        <span id="routineProgressLabel" class="text-sm text-app-muted">0 de 0 concluídos</span>
+                    </div>
+                    <div class="w-full h-2 progress-bar-bg">
+                        <div id="routineProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Weekly grid (like a calendar week view) -->
+                <div class="overflow-x-auto pb-2">
+                    <div id="routine-week-grid" class="grid grid-cols-7 gap-4 min-w-[980px]"></div>
+                </div>
+            </section>
+
+            <!-- Routine Edit Modal -->
+            <div id="routine-modal" onclick="if(event.target===this) closeRoutineModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+                <div class="card-ui w-full max-w-md p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="alarm-clock" class="w-5 h-5 text-app-red"></i> Editar Item da Rotina</h3>
+                    <div class="space-y-3">
+                        <input id="routineModalTime" type="time" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red [color-scheme:dark]">
+                        <input id="routineModalTitleInput" type="text" placeholder="Nome do item" onkeydown="if(event.key==='Enter'){saveRoutineModal();}" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
+                        <div>
+                            <p class="text-xs text-app-muted mb-2">Repetir em:</p>
+                            <div id="routineModalDays" class="flex gap-1.5 flex-wrap"></div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="saveRoutineModal()" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors">Salvar</button>
+                        <button onclick="closeRoutineModal()" class="flex-1 bg-app-card border border-app-border hover:border-app-red text-white py-2.5 rounded-lg font-medium transition-colors">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== VIEW: TREINOS ===================== -->
+            <section id="view-workouts" class="view-section space-y-6">
+
+                <div class="flex justify-between items-center">
+                    <h3 id="workoutTitle" contenteditable="true" spellcheck="false" onblur="saveWorkoutTitle()" onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();}" class="font-semibold text-lg outline-none focus:text-app-red border-b border-dashed border-transparent focus:border-app-border cursor-text" title="Clique para renomear seu treino">Meu Treino</h3>
+                    <button class="bg-app-card border border-app-border hover:border-app-red text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                        Histórico
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="workout-grid">
+                    <!-- Add Exercise Card -->
+                    <div id="add-exercise-card" onclick="startAddExercise(this)" class="card-ui p-5 flex flex-col items-center justify-center text-center cursor-pointer border-dashed border-2 hover:bg-[#1A1A1A]">
+                        <div class="w-12 h-12 rounded-full bg-app-red/10 text-app-red flex items-center justify-center mb-3">
+                            <i data-lucide="plus" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="font-medium text-white">Adicionar Exercício</h4>
+                        <p class="text-xs text-app-muted mt-1">Clique para criar um novo exercício</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== VIEW: HÁBITOS ===================== -->
+            <section id="view-habits" class="view-section space-y-6">
+
+                <!-- Add habit input -->
+                <div class="card-ui p-4 flex flex-col md:flex-row gap-4 items-center">
+                    <input id="habitInput" type="text" onkeydown="if(event.key==='Enter'){addHabit();}" placeholder="Adicione um novo hábito (pressione Enter)" class="w-full bg-transparent border-none text-white focus:ring-0 outline-none text-base placeholder-app-muted">
+                    <button onclick="addHabit()" class="bg-app-red hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex-shrink-0 w-full md:w-auto flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-5 h-5"></i> <span class="md:hidden">Adicionar Hábito</span>
+                    </button>
+                </div>
+
+                <div class="card-ui overflow-hidden">
+                    <div class="p-6 border-b border-app-border flex justify-between items-center">
+                        <h3 class="font-semibold">Tracker Semanal</h3>
+                        <div class="text-sm text-app-muted">Últimos 7 dias</div>
+                    </div>
+                    <div class="overflow-x-auto p-6">
+                        <table class="w-full text-sm text-center">
+                            <thead>
+                                <tr class="text-app-muted border-b border-app-border">
+                                    <th class="text-left pb-4 font-medium w-1/4">Hábito</th>
+                                    <th class="pb-4 font-medium">S</th>
+                                    <th class="pb-4 font-medium">T</th>
+                                    <th class="pb-4 font-medium">Q</th>
+                                    <th class="pb-4 font-medium">Q</th>
+                                    <th class="pb-4 font-medium">S</th>
+                                    <th class="pb-4 font-medium text-app-red">S</th>
+                                    <th class="pb-4 font-medium text-app-red">D</th>
+                                    <th class="pb-4 font-medium text-right">Streak</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-app-border" id="habits-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== VIEW: METAS ===================== -->
+            <section id="view-goals" class="view-section space-y-6">
+
+                <div class="flex justify-end">
+                    <button onclick="openGoalModal()" class="bg-app-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(225,6,0,0.3)] text-sm flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Nova Meta
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="goals-grid"></div>
+            </section>
+
+            <!-- Goal Creation Modal -->
+            <div id="goal-modal" onclick="if(event.target===this) closeGoalModal()" class="hidden fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4">
+                <div class="card-ui w-full max-w-md p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="target" class="w-5 h-5 text-app-red"></i> Nova Meta</h3>
+                    <div class="space-y-3">
+                        <input id="goalTitleInput" type="text" placeholder="Título da meta" onkeydown="if(event.key==='Enter'){confirmAddGoal();}" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red placeholder-app-muted">
+                        <select id="goalCategoryInput" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red">
+                            <option>Pessoal</option>
+                            <option>Profissional</option>
+                            <option>Financeiro</option>
+                            <option>Saúde</option>
+                        </select>
+                        <input id="goalDeadlineInput" type="date" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2.5 outline-none focus:border-app-red [color-scheme:dark]">
+                    </div>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="confirmAddGoal()" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors">Criar Meta</button>
+                        <button onclick="closeGoalModal()" class="flex-1 bg-app-card border border-app-border hover:border-app-red text-white py-2.5 rounded-lg font-medium transition-colors">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Mobile Floating Action Button -->
+    <button onclick="quickAdd()" class="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-app-red hover:bg-red-700 text-white flex items-center justify-center shadow-[0_0_20px_rgba(225,6,0,0.5)] transition-transform active:scale-95">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+
+    <!-- JS Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        let currentView = 'dashboard';
+
+        // View Switcher Logic
+        const viewTitles = {
+            'dashboard': 'Dashboard Geral',
+            'finances': 'Finanças',
+            'tasks': 'Gestão de Tarefas',
+            'routine': 'Rotina Diária',
+            'workouts': 'Treinos & Físico',
+            'habits': 'Hábitos Diários',
+            'goals': 'Metas & Objetivos'
+        };
+
+        function switchView(viewId) {
+            currentView = viewId;
+
+            // Update Title
+            document.getElementById('page-title').innerText = viewTitles[viewId];
+
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Remove active class from nav items
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected view
+            document.getElementById(`view-${viewId}`).classList.add('active');
+
+            // Add active class to selected nav item
+            document.getElementById(`nav-${viewId}`).classList.add('active');
+
+            // Close mobile sidebar if open
+            const sidebarEl = document.getElementById('sidebar');
+            if (window.innerWidth < 768 && !sidebarEl.classList.contains('-translate-x-full')) {
+                toggleSidebar();
+            }
+        }
+
+        // Sidebar Toggle Logic for Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.add('opacity-100'), 10);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.remove('opacity-100');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // ================= Utils =================
+        function uid() { return Date.now() + Math.floor(Math.random() * 1000); }
+        function refreshIcons() { lucide.createIcons(); }
+        function formatBRL(n) {
+            return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function saveData() {
+            localStorage.setItem('organizeit_tasks', JSON.stringify(tasks));
+            localStorage.setItem('organizeit_transactions', JSON.stringify(transactions));
+            localStorage.setItem('organizeit_habits', JSON.stringify(habits));
+            localStorage.setItem('organizeit_exercises', JSON.stringify(exercises));
+            localStorage.setItem('organizeit_goals', JSON.stringify(goals));
+            localStorage.setItem('organizeit_routines', JSON.stringify(routines));
+        }
+
+        // ================= Quick Add (header button + FAB mobile) =================
+        function quickAdd() {
+            if (currentView === 'tasks') {
+                document.getElementById('taskInput').focus();
+            } else if (currentView === 'routine') {
+                document.getElementById('routineTitleInput').focus();
+            } else if (currentView === 'workouts') {
+                startAddExercise(document.getElementById('add-exercise-card'));
+            } else if (currentView === 'habits') {
+                document.getElementById('habitInput').focus();
+            } else if (currentView === 'goals') {
+                openGoalModal();
+            } else {
+                document.getElementById('txDesc').focus();
+            }
+        }
+
+        // ================= Notificações =================
+        function toggleNotifications(e) {
+            e.stopPropagation();
+            document.getElementById('notif-panel').classList.toggle('hidden');
+            document.getElementById('notif-dot').classList.add('hidden');
+        }
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('notif-panel');
+            const bell = document.getElementById('notif-bell');
+            if (!panel.classList.contains('hidden') && !panel.contains(e.target) && !bell.contains(e.target)) {
+                panel.classList.add('hidden');
+            }
+        });
+
+        // ================= Logout =================
+        function logout() {
+            if (confirm('Deseja encerrar a sessão?')) {
+                alert('Sessão encerrada com sucesso. Até logo!');
+            }
+        }
+
+        // ================= Tarefas =================
+        let tasks = JSON.parse(localStorage.getItem('organizeit_tasks')) || [];
+        let editingTaskId = null;
+
+        const priorityMeta = {
+            high: { label: 'Alta Prioridade', classes: 'bg-app-red/10 text-app-red border border-app-red/20 shadow-[0_0_8px_rgba(225,6,0,0.2)]' },
+            medium: { label: 'Média Prioridade', classes: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' },
+            low: { label: 'Baixa Prioridade', classes: 'bg-green-500/10 text-green-500 border border-green-500/20' }
+        };
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = tasks.map(t => {
+                if (t.id === editingTaskId) {
+                    return `
+                        <div class="card-ui p-4 flex items-center gap-3">
+                            <input id="task-edit-input-${t.id}" type="text" value="${t.title.replace(/"/g, '&quot;')}" onkeydown="if(event.key==='Enter'){saveTaskEdit(${t.id});} if(event.key==='Escape'){cancelTaskEdit();}" class="flex-1 bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2 outline-none focus:border-app-red">
+                            <button onclick="saveTaskEdit(${t.id})" class="text-green-500 hover:text-green-400"><i data-lucide="check" class="w-5 h-5"></i></button>
+                            <button onclick="cancelTaskEdit()" class="text-app-muted hover:text-app-red"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                    `;
+                }
+                return `
+                <div class="card-ui p-4 flex items-center justify-between gap-4 group ${t.done ? 'opacity-50' : ''}">
+                    <div class="flex items-center gap-4 flex-1">
+                        <input type="checkbox" class="custom-checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})">
+                        <div>
+                            <h4 class="${t.done ? 'text-app-muted line-through' : 'text-white'} font-medium group-hover:text-app-red transition-colors">${t.title}</h4>
+                            <p class="text-xs text-app-muted mt-1 flex items-center gap-2">
+                                <i data-lucide="${t.done ? 'check' : 'calendar'}" class="w-3 h-3 ${t.done ? 'text-green-500' : ''}"></i> ${t.due}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        ${!t.done ? `<span class="${priorityMeta[t.priority].classes} text-xs px-2 py-1 rounded">${priorityMeta[t.priority].label}</span>` : ''}
+                        <div class="flex gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                            <button class="text-app-muted hover:text-white" onclick="editTask(${t.id})"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                            <button class="text-app-muted hover:text-app-red" onclick="deleteTask(${t.id})"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('') || `<div class="card-ui p-10 text-center text-app-muted">Nenhuma tarefa ainda. Adicione uma acima para começar!</div>`;
+            refreshIcons();
+            if (tasks.some(t => t.id === editingTaskId)) {
+                const input = document.getElementById(`task-edit-input-${editingTaskId}`);
+                if (input) { input.focus(); input.select(); }
+            }
+            updateDashboardTasksCount();
+            updateDashboardPerformance();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const title = input.value.trim();
+            if (!title) { input.focus(); return; }
+            const priority = document.getElementById('taskPrioritySelect').value;
+            const dateVal = document.getElementById('taskDateInput').value;
+            const due = dateVal ? new Date(dateVal + 'T00:00:00').toLocaleDateString('pt-BR') : 'Sem prazo';
+            tasks.push({ id: uid(), title, due, priority, done: false });
+            input.value = '';
+            document.getElementById('taskDateInput').value = '';
+            renderTasks();
+            saveData();
+        }
+
+        function toggleTask(id) {
+            const t = tasks.find(x => x.id === id);
+            if (t) {
+                t.done = !t.done;
+                if (t.done) {
+                    t.due = 'Concluído';
+                    logTaskCompletion();
+                }
+            }
+            renderTasks();
+            saveData();
+            updateProductivityChart();
+        }
+
+        function editTask(id) {
+            editingTaskId = id;
+            renderTasks();
+        }
+
+        function saveTaskEdit(id) {
+            const input = document.getElementById(`task-edit-input-${id}`);
+            const val = input.value.trim();
+            if (val) {
+                const t = tasks.find(x => x.id === id);
+                if (t) t.title = val;
+            }
+            editingTaskId = null;
+            renderTasks();
+            saveData();
+        }
+
+        function cancelTaskEdit() {
+            editingTaskId = null;
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            if (!confirm('Excluir esta tarefa?')) return;
+            tasks = tasks.filter(x => x.id !== id);
+            renderTasks();
+            saveData();
+        }
+
+        function updateDashboardTasksCount() {
+            const pending = tasks.filter(t => !t.done);
+            const high = pending.filter(t => t.priority === 'high');
+            const el = document.getElementById('dashPendingTasks');
+            const subEl = document.getElementById('dashHighPriorityTasks');
+            if (el) el.innerText = pending.length;
+            if (subEl) subEl.innerText = `${high.length} com prioridade alta`;
+        }
+
+        // ================= Finanças =================
+        let transactions = JSON.parse(localStorage.getItem('organizeit_transactions')) || [];
+        let txType = 'expense';
+
+        const categoryClasses = {
+            'Moradia': 'bg-purple-500/10 text-purple-500',
+            'Alimentação': 'bg-orange-500/10 text-orange-500',
+            'Transporte': 'bg-cyan-500/10 text-cyan-500',
+            'Lazer': 'bg-pink-500/10 text-pink-500',
+            'Saúde': 'bg-emerald-500/10 text-emerald-500',
+            'Salário': 'bg-blue-500/10 text-blue-500',
+            'Outros': 'bg-gray-500/10 text-gray-400'
+        };
+        const categoryIcons = {
+            'Moradia': 'home',
+            'Alimentação': 'shopping-cart',
+            'Transporte': 'car',
+            'Lazer': 'popcorn',
+            'Saúde': 'heart-pulse',
+            'Salário': 'trending-up',
+            'Outros': 'more-horizontal'
+        };
+
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        function setTxType(type) {
+            txType = type;
+            const incomeBtn = document.getElementById('txTypeIncomeBtn');
+            const expenseBtn = document.getElementById('txTypeExpenseBtn');
+            if (type === 'income') {
+                incomeBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-green-500/20 text-green-500 flex items-center gap-1';
+                expenseBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-app-muted flex items-center gap-1';
+            } else {
+                expenseBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-app-red/20 text-app-red flex items-center gap-1';
+                incomeBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-app-muted flex items-center gap-1';
+            }
+        }
+
+        // Old transactions saved before dateISO existed get a safe fallback so grouping/sorting never breaks
+        function migrateTransactionDates() {
+            let changed = false;
+            transactions.forEach(t => {
+                if (!t.dateISO) {
+                    t.dateISO = new Date().toISOString().slice(0, 10);
+                    changed = true;
+                }
+            });
+            if (changed) saveData();
+        }
+
+        function populateMonthFilter() {
+            const select = document.getElementById('financeMonthFilter');
+            const months = [...new Set(transactions.map(t => t.dateISO.slice(0, 7)))].sort().reverse();
+            const current = select.value || 'all';
+            select.innerHTML = '<option value="all">Todos os meses</option>' + months.map(m => {
+                const [y, mo] = m.split('-');
+                return `<option value="${m}">${monthNames[parseInt(mo, 10) - 1]} ${y}</option>`;
+            }).join('');
+            select.value = months.includes(current) || current === 'all' ? current : 'all';
+        }
+
+        function renderTransactions() {
+            migrateTransactionDates();
+            populateMonthFilter();
+            const filter = document.getElementById('financeMonthFilter').value;
+            const body = document.getElementById('transactions-body');
+            const periodLabel = document.getElementById('financePeriodLabel');
+
+            const filtered = filter === 'all' ? transactions : transactions.filter(t => t.dateISO.slice(0, 7) === filter);
+
+            if (filter === 'all') {
+                periodLabel.innerText = transactions.length ? 'Todos os meses' : '';
+            } else {
+                const [y, mo] = filter.split('-');
+                periodLabel.innerText = `${monthNames[parseInt(mo, 10) - 1]} ${y}`;
+            }
+
+            if (!filtered.length) {
+                body.innerHTML = `<tr><td colspan="5" class="text-center text-app-muted py-10">Nenhuma transação registrada ${filter === 'all' ? 'ainda' : 'neste mês'}.</td></tr>`;
+                refreshIcons();
+                updateFinanceSummary();
+                updateExpensesChart();
+                return;
+            }
+
+            // Group by month (most recent month first); within a month, closest-to-due date rises to the top
+            const monthKeys = [...new Set(filtered.map(t => t.dateISO.slice(0, 7)))].sort().reverse();
+
+            body.innerHTML = monthKeys.map(m => {
+                const [y, mo] = m.split('-');
+                const monthLabel = `${monthNames[parseInt(mo, 10) - 1]} ${y}`;
+                const monthTxs = filtered
+                    .filter(t => t.dateISO.slice(0, 7) === m)
+                    .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+                const monthTotal = monthTxs.reduce((s, t) => s + t.value, 0);
+
+                const headerRow = `
+                    <tr class="bg-[#1A1A1A]">
+                        <td colspan="3" class="px-6 py-3 font-semibold text-white text-sm">${monthLabel}</td>
+                        <td class="px-6 py-3 text-right font-semibold text-sm font-mono tabular-nums ${monthTotal >= 0 ? 'text-green-500' : 'text-app-red'}">${monthTotal >= 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(monthTotal))}</td>
+                        <td class="px-6 py-3"></td>
+                    </tr>
+                `;
+
+                const rows = monthTxs.map(tx => `
+                    <tr class="border-b border-app-border hover:bg-[#1A1A1A] transition-colors">
+                        <td class="px-6 py-4 font-medium text-white">
+                            <div class="flex items-center gap-3 truncate">
+                                <div class="p-2 bg-app-card rounded shrink-0"><i data-lucide="${tx.icon}" class="w-4 h-4 text-white"></i></div>
+                                <span class="truncate">${tx.desc}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4"><span class="${tx.catClasses} text-xs px-2 py-1 rounded inline-block w-full max-w-[110px] text-center truncate align-middle">${tx.cat}</span></td>
+                        <td class="px-6 py-4 font-mono tabular-nums">${tx.date}</td>
+                        <td class="px-6 py-4 text-right font-mono tabular-nums ${tx.value >= 0 ? 'text-green-500' : 'text-app-red'} font-medium">${tx.value >= 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(tx.value))}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button class="text-app-muted hover:text-app-red" onclick="deleteTransaction(${tx.id})"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                return headerRow + rows;
+            }).join('');
+
+            refreshIcons();
+            updateFinanceSummary();
+            updateExpensesChart();
+        }
+
+        function updateFinanceSummary() {
+            const filter = document.getElementById('financeMonthFilter').value;
+            const relevant = filter === 'all' ? transactions : transactions.filter(t => t.dateISO.slice(0, 7) === filter);
+
+            const income = relevant.filter(t => t.value > 0).reduce((s, t) => s + t.value, 0);
+            const expense = relevant.filter(t => t.value < 0).reduce((s, t) => s + Math.abs(t.value), 0);
+            const balance = income - expense;
+            document.getElementById('sumReceitas').innerText = `R$ ${formatBRL(income)}`;
+            document.getElementById('sumDespesas').innerText = `R$ ${formatBRL(expense)}`;
+            const balEl = document.getElementById('sumBalanco');
+            balEl.innerText = balance === 0 ? `R$ ${formatBRL(0)}` : `${balance > 0 ? '+' : '-'} R$ ${formatBRL(Math.abs(balance))}`;
+            balEl.className = `text-2xl font-bold mt-1 ${balance >= 0 ? 'text-blue-500' : 'text-app-red'}`;
+
+            // Dashboard's overall balance always reflects every transaction, regardless of the Finanças month filter
+            const allIncome = transactions.filter(t => t.value > 0).reduce((s, t) => s + t.value, 0);
+            const allExpense = transactions.filter(t => t.value < 0).reduce((s, t) => s + Math.abs(t.value), 0);
+            const allBalance = allIncome - allExpense;
+            const dashEl = document.getElementById('dashboardSaldo');
+            if (dashEl) dashEl.innerText = `${allBalance < 0 ? '-' : ''}R$ ${formatBRL(Math.abs(allBalance))}`;
+        }
+
+        function addTransaction() {
+            const descInput = document.getElementById('txDesc');
+            const valueInput = document.getElementById('txValue');
+            const categorySelect = document.getElementById('txCategory');
+            const dateInput = document.getElementById('txDate');
+
+            const desc = descInput.value.trim();
+            let value = parseFloat(valueInput.value);
+            if (!desc) { descInput.focus(); return; }
+            if (isNaN(value) || value <= 0) { valueInput.focus(); return; }
+
+            value = txType === 'income' ? Math.abs(value) : -Math.abs(value);
+            const cat = categorySelect.value;
+            const dateVal = dateInput.value;
+            const dateISO = dateVal || new Date().toISOString().slice(0, 10);
+            const date = new Date(dateISO + 'T00:00:00').toLocaleDateString('pt-BR');
+
+            transactions.unshift({
+                id: uid(), desc, cat,
+                catClasses: categoryClasses[cat] || categoryClasses['Outros'],
+                dateISO, date, value,
+                icon: categoryIcons[cat] || categoryIcons['Outros']
+            });
+
+            descInput.value = '';
+            valueInput.value = '';
+            dateInput.value = '';
+            descInput.focus();
+            renderTransactions();
+            saveData();
+        }
+
+        function deleteTransaction(id) {
+            if (!confirm('Excluir esta transação?')) return;
+            transactions = transactions.filter(t => t.id !== id);
+            renderTransactions();
+            saveData();
+        }
+
+        function exportTransactions() {
+            let csv = 'Descrição,Categoria,Data,Valor\n';
+            transactions.forEach(t => {
+                csv += `"${t.desc}","${t.cat}","${t.date}",${t.value}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'transacoes.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ================= Treinos =================
+        let exercises = JSON.parse(localStorage.getItem('organizeit_exercises')) || [];
+
+        const addExerciseCardDefaultHTML = `
+            <div class="w-12 h-12 rounded-full bg-app-red/10 text-app-red flex items-center justify-center mb-3">
+                <i data-lucide="plus" class="w-6 h-6"></i>
+            </div>
+            <h4 class="font-medium text-white">Adicionar Exercício</h4>
+            <p class="text-xs text-app-muted mt-1">Clique para criar um novo exercício</p>
+        `;
+
+        function saveWorkoutTitle() {
+            const el = document.getElementById('workoutTitle');
+            localStorage.setItem('organizeit_workoutTitle', el.innerText.trim() || 'Meu Treino');
+        }
+
+        function renderWorkouts() {
+            const grid = document.getElementById('workout-grid');
+            const addCard = document.getElementById('add-exercise-card');
+            grid.querySelectorAll('.exercise-card').forEach(el => el.remove());
+            exercises.forEach(ex => {
+                const card = document.createElement('div');
+                card.className = 'card-ui p-5 exercise-card';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h4 class="font-bold text-lg text-white">${ex.name}</h4>
+                        <button onclick="deleteExercise(${ex.id})" class="text-app-muted hover:text-app-red"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                    <div class="space-y-3">
+                        ${ex.series.length ? ex.series.map((s, i) => `
+                            <div class="flex justify-between items-center text-sm border-b border-app-border pb-2">
+                                <span class="text-app-muted">Série ${i + 1}</span>
+                                <span class="font-medium flex items-center gap-2">
+                                    <input type="number" value="${s.weight ?? ''}" placeholder="kg" onchange="updateSeries(${ex.id}, ${i}, 'weight', this.value)" class="w-12 bg-[#1A1A1A] border border-app-border text-center rounded text-sm p-1 outline-none text-white focus:border-app-red [appearance:textfield]"> kg
+                                    x
+                                    <input type="number" value="${s.reps ?? ''}" placeholder="reps" onchange="updateSeries(${ex.id}, ${i}, 'reps', this.value)" class="w-12 bg-[#1A1A1A] border border-app-border text-center rounded text-sm p-1 outline-none text-white focus:border-app-red [appearance:textfield]">
+                                </span>
+                                <input type="checkbox" class="custom-checkbox" ${s.done ? 'checked' : ''} onchange="toggleSeriesDone(${ex.id}, ${i}, this.checked)">
+                            </div>
+                        `).join('') : `<p class="text-xs text-app-muted">Nenhuma série ainda.</p>`}
+                    </div>
+                    <button onclick="addSeries(${ex.id})" class="w-full mt-4 text-xs font-medium text-app-muted hover:text-white border border-dashed border-app-border hover:border-app-red rounded py-2 transition-colors">
+                        + Adicionar Série
+                    </button>
+                `;
+                grid.insertBefore(card, addCard);
+            });
+            refreshIcons();
+        }
+
+        function startAddExercise(cardEl) {
+            if (cardEl.dataset.editing === 'true') {
+                document.getElementById('newExerciseInput')?.focus();
+                return;
+            }
+            cardEl.dataset.editing = 'true';
+            cardEl.onclick = null;
+            cardEl.classList.remove('cursor-pointer');
+            cardEl.innerHTML = `
+                <input id="newExerciseInput" type="text" placeholder="Nome do exercício" class="w-full bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2 outline-none focus:border-app-red text-center mb-3" onkeydown="if(event.key==='Enter'){confirmAddExercise();} if(event.key==='Escape'){cancelAddExercise();}">
+                <div class="flex gap-2 w-full">
+                    <button onclick="confirmAddExercise()" class="flex-1 bg-app-red hover:bg-red-700 text-white text-sm py-2 rounded-lg transition-colors">Adicionar</button>
+                    <button onclick="cancelAddExercise()" class="flex-1 bg-app-card border border-app-border hover:border-app-red text-white text-sm py-2 rounded-lg transition-colors">Cancelar</button>
+                </div>
+            `;
+            document.getElementById('newExerciseInput').focus();
+        }
+
+        function resetAddExerciseCard() {
+            const cardEl = document.getElementById('add-exercise-card');
+            cardEl.innerHTML = addExerciseCardDefaultHTML;
+            cardEl.dataset.editing = 'false';
+            cardEl.classList.add('cursor-pointer');
+            cardEl.onclick = () => startAddExercise(cardEl);
+            refreshIcons();
+        }
+
+        function confirmAddExercise() {
+            const input = document.getElementById('newExerciseInput');
+            const name = input.value.trim();
+            if (!name) { input.focus(); return; }
+            exercises.push({ id: uid(), name, series: [] });
+            resetAddExerciseCard();
+            renderWorkouts();
+            saveData();
+        }
+
+        function cancelAddExercise() {
+            resetAddExerciseCard();
+        }
+
+        function deleteExercise(id) {
+            if (!confirm('Excluir este exercício?')) return;
+            exercises = exercises.filter(e => e.id !== id);
+            renderWorkouts();
+            saveData();
+        }
+
+        function addSeries(exerciseId) {
+            const ex = exercises.find(e => e.id === exerciseId);
+            if (!ex) return;
+            ex.series.push({ weight: null, reps: null, done: false });
+            renderWorkouts();
+            saveData();
+        }
+
+        function updateSeries(exerciseId, idx, field, value) {
+            const ex = exercises.find(e => e.id === exerciseId);
+            if (!ex) return;
+            ex.series[idx][field] = value === '' ? null : Number(value);
+            saveData();
+        }
+
+        function toggleSeriesDone(exerciseId, idx, checked) {
+            const ex = exercises.find(e => e.id === exerciseId);
+            if (!ex) return;
+            ex.series[idx].done = checked;
+            saveData();
+        }
+
+        // ================= Hábitos =================
+        let habits = JSON.parse(localStorage.getItem('organizeit_habits')) || [];
+
+        function renderHabits() {
+            const body = document.getElementById('habits-body');
+            body.innerHTML = habits.map(h => `
+                <tr class="group">
+                    <td class="py-4 text-left font-medium text-white group-hover:text-app-red transition-colors">${h.name}</td>
+                    ${h.days.map((d, i) => `<td class="py-4"><input type="checkbox" class="custom-checkbox mx-auto" ${d ? 'checked' : ''} onchange="toggleHabitDay(${h.id}, ${i}, this.checked)"></td>`).join('')}
+                    <td class="py-4 text-right">
+                        <span class="bg-orange-500/10 text-orange-500 px-2 py-1 rounded text-xs font-bold flex items-center justify-end gap-1 w-fit ml-auto">
+                            <i data-lucide="flame" class="w-3 h-3"></i> ${h.streak}
+                        </span>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="9" class="text-center text-app-muted py-10">Nenhum hábito cadastrado ainda.</td></tr>`;
+            refreshIcons();
+            updateDashboardStreak();
+            updateDashboardPerformance();
+        }
+
+        function toggleHabitDay(id, dayIndex, checked) {
+            const h = habits.find(x => x.id === id);
+            if (!h) return;
+            h.days[dayIndex] = checked;
+            h.streak = Math.max(0, h.streak + (checked ? 1 : -1));
+            renderHabits();
+            saveData();
+        }
+
+        function addHabit() {
+            const input = document.getElementById('habitInput');
+            const name = input.value.trim();
+            if (!name) { input.focus(); return; }
+            habits.push({ id: uid(), name, days: [false, false, false, false, false, false, false], streak: 0 });
+            input.value = '';
+            renderHabits();
+            saveData();
+        }
+
+        function updateDashboardStreak() {
+            const el = document.getElementById('dashMaxStreak');
+            const subEl = document.getElementById('dashMaxStreakName');
+            if (!habits.length) {
+                if (el) el.innerText = '0 Dias';
+                if (subEl) subEl.innerText = 'Nenhum hábito cadastrado';
+                return;
+            }
+            const top = habits.reduce((a, b) => (a.streak > b.streak ? a : b));
+            if (el) el.innerText = `${top.streak} Dias`;
+            if (subEl) subEl.innerText = `Hábito: ${top.name}`;
+        }
+
+        // ================= Metas =================
+        let goals = JSON.parse(localStorage.getItem('organizeit_goals')) || [];
+
+        const goalCategoryClasses = {
+            'Pessoal': 'bg-blue-500/10 text-blue-500',
+            'Profissional': 'bg-purple-500/10 text-purple-500',
+            'Financeiro': 'bg-green-500/10 text-green-500',
+            'Saúde': 'bg-orange-500/10 text-orange-500'
+        };
+
+        function goalPercent(g) {
+            if (!g.subtasks.length) return 0;
+            const done = g.subtasks.filter(s => s.done).length;
+            return Math.round((done / g.subtasks.length) * 100);
+        }
+
+        function renderGoals() {
+            const grid = document.getElementById('goals-grid');
+            grid.innerHTML = goals.map(g => {
+                const percent = goalPercent(g);
+                return `
+                <div class="card-ui p-6 relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="${goalCategoryClasses[g.category] || 'bg-gray-500/10 text-gray-400'} text-xs px-2 py-1 rounded mb-2 inline-block">${g.category}</span>
+                            <h3 class="text-xl font-bold text-white">${g.title}</h3>
+                            <p class="text-sm text-app-muted mt-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Prazo: ${g.deadline}</p>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-2xl font-black ${percent >= 100 ? 'text-green-500' : 'text-white'}">${percent}%</span>
+                            <button onclick="deleteGoal(${g.id})" class="text-app-muted hover:text-app-red mt-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="w-full h-2 progress-bar-bg mb-6">
+                        <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        <h4 class="text-xs uppercase font-bold text-app-muted tracking-wider mb-3">Subtarefas</h4>
+                        ${g.subtasks.length ? g.subtasks.map((s, i) => `
+                            <div class="flex items-center gap-3 text-sm">
+                                <input type="checkbox" class="custom-checkbox" ${s.done ? 'checked' : ''} onchange="toggleSubtask(${g.id}, ${i}, this.checked)">
+                                <span class="${s.done ? 'text-app-muted line-through' : 'text-white'}">${s.text}</span>
+                            </div>
+                        `).join('') : `<p class="text-xs text-app-muted">Nenhuma subtarefa ainda.</p>`}
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="subtaskInput-${g.id}" placeholder="Nova subtarefa..." onkeydown="if(event.key==='Enter'){addSubtask(${g.id});}" class="flex-1 bg-[#1A1A1A] border border-app-border text-white text-sm rounded-lg p-2 outline-none focus:border-app-red placeholder-app-muted">
+                        <button onclick="addSubtask(${g.id})" class="bg-app-card border border-app-border hover:border-app-red text-white px-3 rounded-lg transition-colors"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                `;
+            }).join('') || `<div class="card-ui p-10 text-center text-app-muted lg:col-span-2">Nenhuma meta cadastrada ainda. Clique em "Nova Meta" para começar!</div>`;
+            refreshIcons();
+            updateGoalsChart();
+            updateDashboardPerformance();
+        }
+
+        function openGoalModal() {
+            document.getElementById('goal-modal').classList.remove('hidden');
+            document.getElementById('goalTitleInput').focus();
+        }
+
+        function closeGoalModal() {
+            document.getElementById('goal-modal').classList.add('hidden');
+            document.getElementById('goalTitleInput').value = '';
+            document.getElementById('goalDeadlineInput').value = '';
+        }
+
+        function confirmAddGoal() {
+            const titleInput = document.getElementById('goalTitleInput');
+            const title = titleInput.value.trim();
+            if (!title) { titleInput.focus(); return; }
+            const category = document.getElementById('goalCategoryInput').value;
+            const dateVal = document.getElementById('goalDeadlineInput').value;
+            const deadline = dateVal
+                ? new Date(dateVal + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+                : 'Sem prazo';
+            goals.push({ id: uid(), title, category, deadline, subtasks: [] });
+            closeGoalModal();
+            renderGoals();
+            saveData();
+        }
+
+        function deleteGoal(id) {
+            if (!confirm('Excluir esta meta?')) return;
+            goals = goals.filter(g => g.id !== id);
+            renderGoals();
+            saveData();
+        }
+
+        function toggleSubtask(goalId, idx, checked) {
+            const g = goals.find(x => x.id === goalId);
+            if (!g) return;
+            g.subtasks[idx].done = checked;
+            renderGoals();
+            saveData();
+        }
+
+        function addSubtask(goalId) {
+            const input = document.getElementById(`subtaskInput-${goalId}`);
+            const text = input.value.trim();
+            if (!text) return;
+            const g = goals.find(x => x.id === goalId);
+            g.subtasks.push({ text, done: false });
+            renderGoals();
+            saveData();
+        }
+
+        // ================= Rotina (grade semanal, estilo Google Agenda) =================
+        let routines = JSON.parse(localStorage.getItem('organizeit_routines')) || [];
+        let editingRoutineId = null;
+
+        const weekDayLabels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+        const weekDayLetters = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
+        let addRoutineDays = [true, true, true, true, true, true, true];
+        let modalRoutineDays = [true, true, true, true, true, true, true];
+
+        function todayDayIndex() {
+            return (new Date().getDay() + 6) % 7; // Seg=0 ... Dom=6
+        }
+
+        function getWeekKey() {
+            const date = new Date();
+            date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() - todayDayIndex());
+            return date.toISOString().slice(0, 10);
+        }
+
+        // Migra rotinas salvas no esquema antigo (uma flag "done" única) para o novo esquema por dia da semana
+        function migrateRoutineSchema() {
+            let changed = false;
+            routines.forEach(r => {
+                if (!Array.isArray(r.days)) { r.days = [true, true, true, true, true, true, true]; changed = true; }
+                if (!Array.isArray(r.doneDays)) { r.doneDays = [false, false, false, false, false, false, false]; changed = true; }
+            });
+            if (changed) saveData();
+        }
+
+        function checkRoutineWeeklyReset() {
+            const weekKey = getWeekKey();
+            const lastWeek = localStorage.getItem('organizeit_routineWeek');
+            if (lastWeek !== weekKey) {
+                routines.forEach(r => { r.doneDays = [false, false, false, false, false, false, false]; });
+                localStorage.setItem('organizeit_routineWeek', weekKey);
+                saveData();
+            }
+        }
+
+        function renderAddRoutineDayChips() {
+            const container = document.getElementById('routineAddDays');
+            container.innerHTML = weekDayLetters.map((l, i) => `
+                <button type="button" onclick="toggleAddRoutineDay(${i})" class="w-8 h-8 rounded-full text-xs font-semibold transition-colors ${addRoutineDays[i] ? 'bg-app-red text-white' : 'bg-app-card border border-app-border text-app-muted'}">${l}</button>
+            `).join('');
+        }
+
+        function toggleAddRoutineDay(i) {
+            addRoutineDays[i] = !addRoutineDays[i];
+            renderAddRoutineDayChips();
+        }
+
+        function setAllAddRoutineDays(value) {
+            addRoutineDays = addRoutineDays.map(() => value);
+            renderAddRoutineDayChips();
+        }
+
+        function renderRoutineModalDayChips() {
+            const container = document.getElementById('routineModalDays');
+            container.innerHTML = weekDayLetters.map((l, i) => `
+                <button type="button" onclick="toggleModalRoutineDay(${i})" class="w-8 h-8 rounded-full text-xs font-semibold transition-colors ${modalRoutineDays[i] ? 'bg-app-red text-white' : 'bg-app-card border border-app-border text-app-muted'}">${l}</button>
+            `).join('');
+        }
+
+        function toggleModalRoutineDay(i) {
+            modalRoutineDays[i] = !modalRoutineDays[i];
+            renderRoutineModalDayChips();
+        }
+
+        function renderRoutines() {
+            const grid = document.getElementById('routine-week-grid');
+            const today = todayDayIndex();
+
+            grid.innerHTML = weekDayLabels.map((label, dayIdx) => {
+                const items = routines
+                    .filter(r => r.days[dayIdx])
+                    .sort((a, b) => a.time.localeCompare(b.time));
+                const isToday = dayIdx === today;
+
+                return `
+                <div class="flex flex-col gap-2">
+                    <div class="text-center pb-2 mb-1 border-b-2 ${isToday ? 'border-app-red' : 'border-app-border'}">
+                        <p class="text-xs uppercase font-semibold ${isToday ? 'text-app-red' : 'text-app-muted'}">${label}</p>
+                    </div>
+                    <div class="space-y-2">
+                        ${items.length ? items.map(r => `
+                            <div class="card-ui p-3 ${r.doneDays[dayIdx] ? 'opacity-50' : ''}">
+                                <div class="flex items-start justify-between gap-1">
+                                    <span class="text-xs text-app-muted font-mono">${r.time}</span>
+                                    <input type="checkbox" class="custom-checkbox" ${r.doneDays[dayIdx] ? 'checked' : ''} onchange="toggleRoutineDone(${r.id}, ${dayIdx}, this.checked)">
+                                </div>
+                                <p class="text-sm ${r.doneDays[dayIdx] ? 'text-app-muted line-through' : 'text-white'} mt-1 break-words">${r.title}</p>
+                                <div class="flex gap-2 mt-2">
+                                    <button class="text-app-muted hover:text-white" onclick="editRoutine(${r.id})"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                                    <button class="text-app-muted hover:text-app-red" onclick="deleteRoutine(${r.id})"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                                </div>
+                            </div>
+                        `).join('') : `<p class="text-xs text-app-muted text-center py-6">—</p>`}
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            refreshIcons();
+            updateRoutineProgress();
+        }
+
+        function updateRoutineProgress() {
+            const today = todayDayIndex();
+            const todayItems = routines.filter(r => r.days[today]);
+            const total = todayItems.length;
+            const done = todayItems.filter(r => r.doneDays[today]).length;
+            const percent = total ? Math.round((done / total) * 100) : 0;
+            const label = document.getElementById('routineProgressLabel');
+            const bar = document.getElementById('routineProgressBar');
+            if (label) label.innerText = `${done} de ${total} concluídos hoje`;
+            if (bar) bar.style.width = `${percent}%`;
+            updateDashboardPerformance();
+        }
+
+        function addRoutine() {
+            const timeInput = document.getElementById('routineTimeInput');
+            const titleInput = document.getElementById('routineTitleInput');
+            const title = titleInput.value.trim();
+            if (!title) { titleInput.focus(); return; }
+            if (!addRoutineDays.some(d => d)) return;
+            const time = timeInput.value || '08:00';
+            routines.push({ id: uid(), time, title, days: [...addRoutineDays], doneDays: [false, false, false, false, false, false, false] });
+            titleInput.value = '';
+            titleInput.focus();
+            renderRoutines();
+            saveData();
+        }
+
+        function toggleRoutineDone(id, dayIdx, checked) {
+            const r = routines.find(x => x.id === id);
+            if (r) r.doneDays[dayIdx] = checked;
+            renderRoutines();
+            saveData();
+        }
+
+        function editRoutine(id) {
+            const r = routines.find(x => x.id === id);
+            if (!r) return;
+            editingRoutineId = id;
+            document.getElementById('routineModalTime').value = r.time;
+            document.getElementById('routineModalTitleInput').value = r.title;
+            modalRoutineDays = [...r.days];
+            renderRoutineModalDayChips();
+            document.getElementById('routine-modal').classList.remove('hidden');
+            document.getElementById('routineModalTitleInput').focus();
+        }
+
+        function closeRoutineModal() {
+            document.getElementById('routine-modal').classList.add('hidden');
+            editingRoutineId = null;
+        }
+
+        function saveRoutineModal() {
+            const r = routines.find(x => x.id === editingRoutineId);
+            if (!r) return;
+            const title = document.getElementById('routineModalTitleInput').value.trim();
+            if (!title) return;
+            if (!modalRoutineDays.some(d => d)) return;
+            r.time = document.getElementById('routineModalTime').value || r.time;
+            r.title = title;
+            r.days = [...modalRoutineDays];
+            closeRoutineModal();
+            renderRoutines();
+            saveData();
+        }
+
+        function deleteRoutine(id) {
+            if (!confirm('Excluir este item da rotina?')) return;
+            routines = routines.filter(x => x.id !== id);
+            renderRoutines();
+            saveData();
+        }
+
+        // ================= Performance Score (dashboard) =================
+        function updateDashboardPerformance() {
+            const taskRate = tasks.length ? (tasks.filter(t => t.done).length / tasks.length) * 100 : 0;
+            const goalsRate = goals.length ? goals.reduce((s, g) => s + goalPercent(g), 0) / goals.length : 0;
+            const habitRate = habits.length ? (habits.filter(h => h.days.some(d => d)).length / habits.length) * 100 : 0;
+            const todayIdx = todayDayIndex();
+            const todayRoutines = routines.filter(r => r.days[todayIdx]);
+            const routineRate = todayRoutines.length ? (todayRoutines.filter(r => r.doneDays[todayIdx]).length / todayRoutines.length) * 100 : 0;
+            const inputs = [tasks.length, goals.length, habits.length, todayRoutines.length].filter(n => n > 0).length;
+            const score = inputs ? Math.round((taskRate + goalsRate + habitRate + routineRate) / inputs) : 0;
+            const el = document.getElementById('dashPerformanceScore');
+            const barEl = document.getElementById('dashPerformanceBar');
+            if (el) el.innerText = score;
+            if (barEl) barEl.style.width = `${score}%`;
+        }
+
+        // ================= Gráficos dinâmicos =================
+        function logTaskCompletion() {
+            const log = JSON.parse(localStorage.getItem('organizeit_completionLog')) || [];
+            log.push(new Date().toISOString().slice(0, 10));
+            localStorage.setItem('organizeit_completionLog', JSON.stringify(log));
+        }
+
+        function getLast7DaysLabels() {
+            const labels = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                labels.push(d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''));
+            }
+            return labels;
+        }
+
+        function computeProductivityData() {
+            const log = JSON.parse(localStorage.getItem('organizeit_completionLog')) || [];
+            const counts = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().slice(0, 10);
+                counts.push(log.filter(x => x === key).length);
+            }
+            return counts;
+        }
+
+        let prodChart, expChart, goalsChart;
+
+        function updateProductivityChart() {
+            if (!prodChart) return;
+            prodChart.data.labels = getLast7DaysLabels();
+            prodChart.data.datasets[0].data = computeProductivityData();
+            prodChart.update();
+        }
+
+        function updateExpensesChart() {
+            if (!expChart) return;
+            const byCategory = {};
+            transactions.filter(t => t.value < 0).forEach(t => {
+                byCategory[t.cat] = (byCategory[t.cat] || 0) + Math.abs(t.value);
+            });
+            const labels = Object.keys(byCategory);
+            if (!labels.length) {
+                expChart.data.labels = ['Sem despesas'];
+                expChart.data.datasets[0].data = [1];
+                expChart.data.datasets[0].backgroundColor = ['#262626'];
+            } else {
+                const palette = ['#E10600', '#4D4D4D', '#828282', '#B3B3B3', '#333333', '#8A8A8A'];
+                expChart.data.labels = labels;
+                expChart.data.datasets[0].data = labels.map(l => byCategory[l]);
+                expChart.data.datasets[0].backgroundColor = labels.map((_, i) => palette[i % palette.length]);
+            }
+            expChart.update();
+        }
+
+        function updateGoalsChart() {
+            if (!goalsChart) return;
+            if (!goals.length) {
+                goalsChart.data.labels = ['Sem metas'];
+                goalsChart.data.datasets[0].data = [0];
+            } else {
+                goalsChart.data.labels = goals.map(g => g.title.length > 16 ? g.title.slice(0, 16) + '…' : g.title);
+                goalsChart.data.datasets[0].data = goals.map(g => goalPercent(g));
+            }
+            goalsChart.update();
+        }
+
+        // ================= Inicialização =================
+        (function initWorkoutTitle() {
+            const saved = localStorage.getItem('organizeit_workoutTitle');
+            if (saved) document.getElementById('workoutTitle').innerText = saved;
+        })();
+
+        migrateRoutineSchema();
+        checkRoutineWeeklyReset();
+        renderAddRoutineDayChips();
+        renderTasks();
+        renderTransactions();
+        renderWorkouts();
+        renderHabits();
+        renderGoals();
+        renderRoutines();
+        updateDashboardPerformance();
+
+        // ================= Chart.js Initialization =================
+
+        // Globals for dark theme charts
+        Chart.defaults.color = '#A3A3A3';
+        Chart.defaults.font.family = 'Inter';
+        const gridConfig = { color: '#262626' };
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 1. Productivity Line Chart
+            const ctxProd = document.getElementById('chartProductivity').getContext('2d');
+
+            // Create gradient
+            let gradientRed = ctxProd.createLinearGradient(0, 0, 0, 400);
+            gradientRed.addColorStop(0, 'rgba(225, 6, 0, 0.5)');
+            gradientRed.addColorStop(1, 'rgba(225, 6, 0, 0.0)');
+
+            prodChart = new Chart(ctxProd, {
+                type: 'line',
+                data: {
+                    labels: getLast7DaysLabels(),
+                    datasets: [{
+                        label: 'Tarefas Concluídas',
+                        data: computeProductivityData(),
+                        borderColor: '#E10600',
+                        backgroundColor: gradientRed,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#0D0D0D',
+                        pointBorderColor: '#E10600',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: gridConfig, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
+
+            // 2. Expenses Doughnut Chart
+            const ctxExp = document.getElementById('chartExpenses').getContext('2d');
+            expChart = new Chart(ctxExp, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sem despesas'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#262626'],
+                        borderColor: '#0D0D0D',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    }
+                }
+            });
+
+            // 3. Goals Bar Chart
+            const ctxGoals = document.getElementById('chartGoals').getContext('2d');
+            goalsChart = new Chart(ctxGoals, {
+                type: 'bar',
+                data: {
+                    labels: ['Sem metas'],
+                    datasets: [{
+                        label: 'Progresso %',
+                        data: [0],
+                        backgroundColor: '#E10600',
+                        borderRadius: 4,
+                        barThickness: 24,
+                        hoverBackgroundColor: '#FF1A1A'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y', // Horizontal bar chart
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { max: 100, grid: gridConfig, border: { display: false } },
+                        y: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
+
+            // Sync charts with any persisted data
+            updateExpensesChart();
+            updateGoalsChart();
+        });
+    </script>
+</body>
+</html>
