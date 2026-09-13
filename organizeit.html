@@ -7,8 +7,40 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Organize It">
+    <meta name="description" content="Finanças, tarefas, rotina, treinos, hábitos, metas e achadinhos da Shopee em um só lugar.">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <title>Organize It | Micro SaaS</title>
     
+    <!-- ===== Configuração de produção =====
+         GA4_ID: ID de medição do Google Analytics 4 (ex.: "G-XXXXXXXXXX"). Vazio = desligado.
+         SENTRY_DSN: DSN do projeto no Sentry (ex.: "https://abc@o123.ingest.sentry.io/456"). Vazio = desligado. -->
+    <script>
+        window.ORGANIZEIT_CONFIG = {
+            GA4_ID: '',
+            SENTRY_DSN: '',
+            VERSION: '1.0.0'
+        };
+        (function () {
+            const cfg = window.ORGANIZEIT_CONFIG;
+            if (cfg.GA4_ID) {
+                const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + cfg.GA4_ID; document.head.appendChild(s);
+                window.dataLayer = window.dataLayer || [];
+                window.gtag = function () { dataLayer.push(arguments); };
+                gtag('js', new Date()); gtag('config', cfg.GA4_ID, { anonymize_ip: true });
+            }
+            if (cfg.SENTRY_DSN) {
+                const s = document.createElement('script'); s.src = 'https://browser.sentry-cdn.com/8.33.1/bundle.min.js'; s.crossOrigin = 'anonymous';
+                s.onload = function () { if (window.Sentry) Sentry.init({ dsn: cfg.SENTRY_DSN, release: 'organizeit@' + cfg.VERSION, tracesSampleRate: 0 }); };
+                document.head.appendChild(s);
+            }
+        })();
+        // Evento de uso: vai para o GA4 quando ligado, senão fica silencioso
+        function track(name, params) { try { if (window.gtag) gtag('event', name, params || {}); } catch (e) {} }
+    </script>
+
     <!-- Tailwind CSS (pré-compilado e embutido: sem download de 400 KB nem "piscada" sem estilo).
          Se você adicionar classes Tailwind novas no HTML, troque este <style> por:
          <script src="https://cdn.tailwindcss.com"></script>  (o tailwind.config abaixo já está pronto) -->
@@ -79,6 +111,9 @@
             background-color: #0D0D0D;
             color: #FFFFFF;
             overflow-x: hidden;
+        }
+        @supports (height: 100dvh) {
+            body.h-screen, #sidebar.h-full, main.h-full { height: 100dvh; }
         }
 
         /* Custom Scrollbar */
@@ -904,6 +939,7 @@
 
         function switchView(viewId) {
             currentView = viewId;
+            track('view', { view: viewId });
 
             // Update Title
             document.getElementById('page-title').innerText = viewTitles[viewId];
@@ -2200,7 +2236,7 @@
                         <button onclick="copyCoupon('${esc(p.cupom)}')" class="bg-yellow-500/10 border border-yellow-500/40 hover:border-yellow-500 text-yellow-500 text-xs font-bold px-3 py-2 rounded-lg transition-colors">Copiar</button>
                     </div>` : ''}
                     <div class="flex gap-2 mt-6">
-                        <a href="${p.link}" target="_blank" rel="noopener sponsored" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(225,6,0,0.3)]"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Ver na Shopee</a>
+                        <a href="${p.link}" target="_blank" rel="noopener sponsored" onclick="track('shopee_click', { product: '${p.id}' })" class="flex-1 bg-app-red hover:bg-red-700 text-white py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(225,6,0,0.3)]"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Ver na Shopee</a>
                         <button onclick="toggleAchFav('${p.id}')" class="bg-app-card border ${achIsFav(p.id) ? 'border-app-red text-app-red' : 'border-app-border text-white'} hover:border-app-red px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"><i data-lucide="heart" class="w-4 h-4" ${achIsFav(p.id) ? 'fill="#E10600"' : ''}></i></button>
                     </div>`;
             }
@@ -2336,6 +2372,7 @@
                 ? `Plano Anual · 7 dias grátis, depois ${brl(PRO_PRICES.anual)}/ano.`
                 : `Plano Mensal · 7 dias grátis, depois ${brl(PRO_PRICES.mensal)}/mês.`;
             document.getElementById('checkout-modal').classList.remove('hidden');
+            track('checkout_open', { plan: proSelected });
             refreshIcons();
         }
         function closeCheckout() { document.getElementById('checkout-modal').classList.add('hidden'); }
@@ -2346,6 +2383,7 @@
             localStorage.setItem('organizeit_pro', 'true');
             localStorage.setItem('organizeit_proPlan', proPlan);
             closeCheckout();
+            track('pro_activated', { plan: proPlan });
             achToast('Bem-vindo ao Pro! Tudo liberado.');
             renderProView();
             renderAchadinhos();
@@ -2380,6 +2418,20 @@
         renderAchadinhos();
         updateDashboardPerformance();
         buildNotifications();
+
+        // ================= PWA: service worker e atualização =================
+        if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+            (() => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    reg.addEventListener('updatefound', () => {
+                        const nw = reg.installing;
+                        nw && nw.addEventListener('statechange', () => {
+                            if (nw.state === 'installed' && navigator.serviceWorker.controller) achToast('Nova versão disponível. Feche e abra o app para atualizar.');
+                        });
+                    });
+                }).catch(() => {});
+            })();
+        }
 
         // ================= Chart.js Initialization =================
 
