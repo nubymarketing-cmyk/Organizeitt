@@ -6,7 +6,7 @@ name: Publicar no GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/shopee-academia-page-dyz4xf]
   workflow_dispatch:
 
 permissions:
