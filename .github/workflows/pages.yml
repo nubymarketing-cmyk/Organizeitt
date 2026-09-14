@@ -1,32 +1,58 @@
 name: Publicar no GitHub Pages
 
+# Publica o site no branch "gh-pages" a cada push no main.
+# No GitHub: Settings > Pages > Source: "Deploy from a branch" > Branch: gh-pages / (root).
+# Esse método não exige que o robô crie o site do Pages (permissão que o GITHUB_TOKEN não tem).
+
 on:
   push:
     branches: [main, claude/shopee-academia-page-dyz4xf]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: gh-pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  publicar:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - id: deployment
-        uses: actions/deploy-pages@v4
+
+      - name: Montar a pasta do site
+        run: |
+          set -e
+          rm -rf _site && mkdir _site
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '_site' \
+            --exclude 'README.md' \
+            ./ _site/
+          # .nojekyll impede o GitHub de processar o site com Jekyll
+          touch _site/.nojekyll
+          echo "Arquivos publicados:" && ls -la _site
+
+      - name: Enviar para o branch gh-pages
+        run: |
+          set -e
+          cd _site
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b gh-pages
+          git add -A
+          git commit -q -m "Deploy de ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Onde ver o site
+        run: |
+          echo "Branch gh-pages atualizado."
+          echo "Ative uma vez em: https://github.com/${GITHUB_REPOSITORY}/settings/pages"
+          echo "  Source: Deploy from a branch | Branch: gh-pages | Pasta: / (root)"
+          echo "Depois o site fica em: https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
