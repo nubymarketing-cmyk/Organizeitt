@@ -14,6 +14,20 @@ Dashboard · Finanças · Tarefas · Rotina · Treinos · Hábitos · Metas · *
 - **Ícones:** subconjunto do Lucide embutido (`window.lucide.icons`). Para usar um ícone novo, adicione o SVG dele nesse objeto.
 - **Gráficos:** Chart.js 4.4.4 via CDN com `defer`. Se o CDN não carregar, o app continua funcionando sem os gráficos.
 
+## Cores
+
+| Uso | Cor | Onde aparece |
+|---|---|---|
+| Marca e ação | `#FF7A00` laranja, token `app-brand` | logo, aba ativa, botões principais, gráficos |
+| Dinheiro | `#F59E0B` âmbar, `amber-500` | preço e cupom dos achadinhos |
+| Alerta | `red-500` | despesa, saldo negativo, tarefa atrasada, prioridade alta, excluir |
+| Positivo | `green-500` | receita, prioridade baixa, meta concluída |
+| Neutro informativo | `blue-500` | balanço positivo |
+
+A regra é: **laranja só em coisa clicável**. Vermelho nunca é decoração, só sinal.
+Ao mexer nas cores, altere o `tailwind.config` no topo do arquivo e recompile o
+bloco `<style id="tailwind-css">`.
+
 ## Colocar no ar (GitHub Pages)
 
 O deploy é automático: todo push publica o site no branch **`gh-pages`**
