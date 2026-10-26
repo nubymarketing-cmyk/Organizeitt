@@ -1,6 +1,6 @@
 import { useEffect, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import type { PostStatus } from '../../types/database';
-import { STATUS_LABEL, STATUS_STYLE } from '../../lib/format';
+import { CLIENT_STATUS_LABEL, STATUS_LABEL, STATUS_STYLE } from '../../lib/format';
 import { useSignedUrl } from '../../hooks/useSignedUrl';
 import { parseDemoMedia } from '../../services/storage';
 
@@ -27,7 +27,7 @@ export function Button({
   return (
     <button
       className={cx(
-        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold tracking-wide transition disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold tracking-wide transition disabled:cursor-not-allowed disabled:opacity-50',
         styles[variant],
         className,
       )}
@@ -93,10 +93,11 @@ export function InlineError({ error }: { error: unknown }) {
   return <p className="rounded-lg bg-bad/10 px-3 py-2 text-sm text-bad">{errorMessage(error)}</p>;
 }
 
-export function StatusBadge({ status }: { status: PostStatus }) {
+/** friendly: nomes do portal do cliente ("Esperando seu ok", "Já no ar"). */
+export function StatusBadge({ status, friendly }: { status: PostStatus; friendly?: boolean }) {
   return (
     <span className={cx('inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-bold', STATUS_STYLE[status])}>
-      {STATUS_LABEL[status]}
+      {(friendly ? CLIENT_STATUS_LABEL : STATUS_LABEL)[status]}
     </span>
   );
 }

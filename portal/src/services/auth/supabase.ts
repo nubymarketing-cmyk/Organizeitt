@@ -25,6 +25,11 @@ export async function sendMagicLink(email: string): Promise<void> {
   if (error?.message === 'Failed to fetch') throw new AppError('Sem conexão com o servidor. Tente de novo.');
 }
 
+/** Tour do primeiro acesso visto (ou pulado). */
+export async function markTourDone(): Promise<void> {
+  unwrap(await supabase().rpc('mark_tour_done'));
+}
+
 export async function signOut(): Promise<void> {
   await supabase().auth.signOut();
 }

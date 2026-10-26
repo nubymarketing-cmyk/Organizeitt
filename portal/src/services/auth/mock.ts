@@ -28,6 +28,12 @@ export function listDemoUsers(): Profile[] {
   return db.profiles.map((p) => ({ ...p }));
 }
 
+export async function markTourDone(): Promise<void> {
+  const p = currentProfile();
+  if (p) p.tour_done_at = new Date().toISOString();
+  await delay(null, 50);
+}
+
 export async function signOut(): Promise<void> {
   setCurrentUser(null);
   await delay(null, 50);

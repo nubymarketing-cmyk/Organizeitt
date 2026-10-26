@@ -66,6 +66,15 @@ export const STATUS_LABEL: Record<PostStatus, string> = {
   published: 'Publicado',
 };
 
+/** Nomes que o cliente vê: sem jargão de agência. */
+export const CLIENT_STATUS_LABEL: Record<PostStatus, string> = {
+  in_creation: 'Em produção',
+  awaiting_approval: 'Esperando seu ok',
+  changes_requested: 'Ajuste pedido',
+  approved: 'Aprovado',
+  published: 'Já no ar',
+};
+
 /** Classes de cor por status, seguindo a paleta do protótipo. */
 export const STATUS_STYLE: Record<PostStatus, string> = {
   in_creation: 'text-dim bg-white/5 border-white/10',

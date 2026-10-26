@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSession } from '../../hooks/useAuth';
 import { useApprovePost, usePost, useRequestChanges } from '../../hooks/usePosts';
-import { FORMAT_LABEL, NETWORK_LABEL, formatDateTime } from '../../lib/format';
+import { NETWORK_LABEL, formatDateTime } from '../../lib/format';
+import { useClient } from '../../hooks/useClients';
 import { Button, Card, ErrorState, InlineError, Skeleton, StatusBadge, Textarea } from '../../components/ui';
-import { CommentThread, MediaCarousel, VersionHistory } from '../../components/PostParts';
+import { CommentThread, VersionHistory } from '../../components/PostParts';
+import { InstagramPreview } from '../../components/client/InstagramPreview';
 
 export function PostDetalhePage() {
   const { id } = useParams();
@@ -12,6 +14,7 @@ export function PostDetalhePage() {
   const { data: profile } = useSession();
   // Equipe da clínica só visualiza e comenta; quem aprova é o dono.
   const canApprove = profile?.role === 'client_owner';
+  const client = useClient(profile?.client_id);
   const approve = useApprovePost();
   const requestChanges = useRequestChanges();
   const [asking, setAsking] = useState(false);
@@ -29,7 +32,7 @@ export function PostDetalhePage() {
   if (post.isError || !post.data) {
     return (
       <div className="space-y-4">
-        <Link to="/app/calendario" className="text-sm text-lilac">‹ Voltar</Link>
+        <Link to="/app/posts" className="flex min-h-[44px] items-center text-sm text-lilac">‹ Meus posts</Link>
         <ErrorState error={post.error} onRetry={() => post.refetch()} />
       </div>
     );
@@ -42,25 +45,20 @@ export function PostDetalhePage() {
 
   return (
     <div className="space-y-6">
-      <Link to="/app/calendario" className="text-sm text-lilac">‹ Voltar</Link>
+      <Link to="/app/posts" className="flex min-h-[44px] items-center text-sm text-lilac">‹ Meus posts</Link>
 
       <div>
         <div className="mb-2 flex items-center gap-2">
-          <StatusBadge status={p.status} />
+          <StatusBadge status={p.status} friendly />
           {p.current_version > 1 ? <span className="text-xs text-dim">versão {p.current_version}</span> : null}
         </div>
         <h1 className="font-display text-2xl font-extrabold text-white">{p.title}</h1>
         <p className="mt-1 text-sm text-muted">
-          {formatDateTime(p.scheduled_at)} · {NETWORK_LABEL[p.network]} · {FORMAT_LABEL[p.format]}
+          Vai ao ar {formatDateTime(p.scheduled_at)} · {NETWORK_LABEL[p.network]}
         </p>
       </div>
 
-      <MediaCarousel media={current?.media ?? []} />
-
-      <Card>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">Legenda</p>
-        <p className="whitespace-pre-line text-sm leading-relaxed text-white">{current?.caption || p.caption || 'sem legenda'}</p>
-      </Card>
+      <InstagramPreview clientName={client.data?.name ?? ''} media={current?.media ?? []} caption={current?.caption ?? p.caption ?? ''} />
 
       {awaiting && !canApprove ? (
         <Card className="text-sm text-muted">Este post está esperando o ok do responsável pela clínica. Se quiser, deixe um comentário abaixo.</Card>
@@ -96,7 +94,7 @@ export function PostDetalhePage() {
                     )
                   }
                 >
-                  ENVIAR PEDIDO DE AJUSTE
+                  Enviar pedido de ajuste
                 </Button>
               </div>
             </div>
@@ -106,10 +104,10 @@ export function PostDetalhePage() {
               <InlineError error={approve.error} />
               <div className="flex gap-2">
                 <Button variant="secondary" className="flex-1" onClick={() => setAsking(true)} disabled={busy}>
-                  PEDIR AJUSTE
+                  Pedir ajuste
                 </Button>
                 <Button className="flex-1" loading={approve.isPending} onClick={() => approve.mutate(p.id)}>
-                  APROVAR
+                  Aprovar
                 </Button>
               </div>
             </div>

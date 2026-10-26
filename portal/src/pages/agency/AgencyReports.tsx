@@ -3,7 +3,7 @@ import type { Report } from '../../types/database';
 import { useReports, useSaveReport, useUnpublishReport } from '../../hooks/useReports';
 import { monthKey, monthLabel } from '../../lib/format';
 import { Button, Card, EmptyState, ErrorState, Field, InlineError, Input, SkeletonList, Textarea } from '../../components/ui';
-import { PdfButton } from '../client/RelatoriosPage';
+import { PdfButton } from '../../components/client/PdfButton';
 
 type NumKey = 'reach' | 'new_followers' | 'contacts' | 'appointments' | 'ad_spend' | 'cost_per_lead';
 const FIELDS: Array<{ key: NumKey; label: string; step?: string }> = [

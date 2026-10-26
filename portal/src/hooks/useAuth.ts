@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type { Profile } from '../types/database';
-import { getSessionProfile, onAuthChange, openMagicLinkDemo, sendMagicLink, signOut } from '../services/auth';
+import { getSessionProfile, markTourDone, onAuthChange, openMagicLinkDemo, sendMagicLink, signOut } from '../services/auth';
 
 export function useSession() {
   return useQuery({ queryKey: ['session'], queryFn: getSessionProfile, staleTime: Infinity });
@@ -18,6 +18,16 @@ export function useAuthListener() {
       }),
     [qc],
   );
+}
+
+/** Marca o tour como visto e atualiza a sessão sem recarregar. */
+export function useMarkTourDone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: markTourDone,
+    onSuccess: () =>
+      qc.setQueryData<Profile | null>(['session'], (p) => (p ? { ...p, tour_done_at: p.tour_done_at ?? new Date().toISOString() } : p)),
+  });
 }
 
 export function useSendMagicLink() {

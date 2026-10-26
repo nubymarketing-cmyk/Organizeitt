@@ -1,16 +1,19 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { useSession, useSignOut } from '../../hooks/useAuth';
+import { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useMarkTourDone, useSession, useSignOut } from '../../hooks/useAuth';
 import { useMyAgency } from '../../hooks/useAgency';
 import { useClient } from '../../hooks/useClients';
 import { brandStyle } from '../../lib/brand';
 import { initials } from '../../lib/format';
 import { cx } from '../ui';
 import { AgencyBrand } from './AgencyBrand';
+import { ClientTour } from '../client/ClientTour';
 
+// No máximo 4 itens, com nomes que a clínica entende.
 const TABS = [
   { to: '/app', label: 'Início', end: true },
-  { to: '/app/calendario', label: 'Calendário' },
-  { to: '/app/relatorios', label: 'Relatórios' },
+  { to: '/app/posts', label: 'Meus posts' },
+  { to: '/app/resultados', label: 'Resultados' },
   { to: '/app/arquivos', label: 'Arquivos' },
 ];
 
@@ -19,6 +22,16 @@ export function ClientLayout() {
   const client = useClient(profile?.client_id);
   const agency = useMyAgency();
   const signOut = useSignOut();
+  const markTour = useMarkTourDone();
+  const navigate = useNavigate();
+  // Primeiro acesso abre o tour sozinho; depois ele volta pelo botão Ajuda.
+  const [tourOpen, setTourOpen] = useState(false);
+  const showTour = tourOpen || (!!profile && !profile.tour_done_at && !markTour.isPending && !markTour.isSuccess);
+  const closeTour = () => {
+    setTourOpen(false);
+    navigate('/app');
+    if (profile && !profile.tour_done_at) markTour.mutate();
+  };
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-night" style={brandStyle(agency.data?.primary_color)}>
@@ -38,7 +51,10 @@ export function ClientLayout() {
           </div>
           <div className="flex items-center gap-3">
             <AgencyBrand agency={agency.data} />
-            <button className="text-xs text-muted underline-offset-2 hover:underline" onClick={() => signOut.mutate()}>
+            <button className="min-h-[44px] px-1 text-xs text-muted underline-offset-2 hover:underline" onClick={() => setTourOpen(true)}>
+              Ajuda
+            </button>
+            <button className="min-h-[44px] px-1 text-xs text-muted underline-offset-2 hover:underline" onClick={() => signOut.mutate()}>
               Sair
             </button>
           </div>
@@ -54,7 +70,10 @@ export function ClientLayout() {
               to={t.to}
               end={t.end}
               className={({ isActive }) =>
-                cx('flex-1 rounded-xl px-2 py-2.5 text-center text-xs font-bold', isActive ? 'bg-brand text-white' : 'text-muted')
+                cx(
+                  'flex min-h-[48px] flex-1 items-center justify-center rounded-xl px-1 text-center text-xs font-bold',
+                  isActive ? 'bg-brand text-white' : 'text-muted',
+                )
               }
             >
               {t.label}
@@ -62,6 +81,8 @@ export function ClientLayout() {
           ))}
         </div>
       </nav>
+
+      {showTour ? <ClientTour onStep={(tab) => navigate(tab)} onClose={closeTour} /> : null}
     </div>
   );
 }

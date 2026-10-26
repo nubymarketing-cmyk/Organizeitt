@@ -5,9 +5,10 @@ import { HomeRedirect, RequireAuth } from './components/layout/RequireAuth';
 import { useAuthListener } from './hooks/useAuth';
 import { LoginPage } from './pages/auth/LoginPage';
 import { InicioPage } from './pages/client/InicioPage';
-import { CalendarioPage } from './pages/client/CalendarioPage';
 import { PostDetalhePage } from './pages/client/PostDetalhePage';
-import { RelatoriosPage } from './pages/client/RelatoriosPage';
+import { MeusPostsPage } from './pages/client/MeusPostsPage';
+import { ResultadosPage } from './pages/client/ResultadosPage';
+import { AprovarPage } from './pages/client/AprovarPage';
 import { ArquivosPage } from './pages/client/ArquivosPage';
 import { ClientesPage } from './pages/agency/ClientesPage';
 import { ClienteDetalhePage } from './pages/agency/ClienteDetalhePage';
@@ -30,11 +31,16 @@ export function App() {
       <Route element={<RequireAuth area="client" />}>
         <Route path="/app" element={<ClientLayout />}>
           <Route index element={<InicioPage />} />
-          <Route path="calendario" element={<CalendarioPage />} />
+          <Route path="posts" element={<MeusPostsPage />} />
           <Route path="posts/:id" element={<PostDetalhePage />} />
-          <Route path="relatorios" element={<RelatoriosPage />} />
+          <Route path="resultados" element={<ResultadosPage />} />
+          {/* Endereços antigos */}
+          <Route path="calendario" element={<Navigate to="/app/posts" replace />} />
+          <Route path="relatorios" element={<Navigate to="/app/resultados" replace />} />
           <Route path="arquivos" element={<ArquivosPage />} />
         </Route>
+        {/* Aprovação em tela cheia, sem o menu de baixo. */}
+        <Route path="/app/aprovar" element={<AprovarPage />} />
       </Route>
 
       <Route element={<RequireAuth area="staff" />}>
