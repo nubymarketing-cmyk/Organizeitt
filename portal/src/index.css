@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background: #0c0b1d;
+  color: #fff;
+  font-family: Manrope, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+select option {
+  background: #0d0d24;
+}
