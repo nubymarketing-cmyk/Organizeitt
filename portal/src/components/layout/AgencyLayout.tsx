@@ -26,6 +26,9 @@ export function AgencyLayout() {
             >
               Clientes
             </NavLink>
+            <button className="rounded-lg px-3 py-2 text-sm text-lilac md:hidden" onClick={() => signOut.mutate()}>
+              Sair
+            </button>
           </nav>
         </div>
         <div className="mt-4 hidden border-t border-line pt-4 text-sm md:absolute md:bottom-6 md:left-5 md:right-5 md:block">
@@ -37,11 +40,6 @@ export function AgencyLayout() {
         </div>
       </aside>
       <main className="min-w-0 flex-1 px-4 py-6 md:px-10 md:py-8">
-        <div className="mb-4 flex justify-end md:hidden">
-          <button className="text-xs text-lilac" onClick={() => signOut.mutate()}>
-            Sair
-          </button>
-        </div>
         <div className="mx-auto max-w-5xl">
           <Outlet />
         </div>

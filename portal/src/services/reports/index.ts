@@ -25,13 +25,32 @@ export async function listReports(clientId: string): Promise<Report[]> {
   return delay(rows.map((r) => ({ ...r })));
 }
 
-/** Cria ou atualiza o relatório do mês (único por cliente + mês). */
-export async function saveReport(input: ReportInput, publish: boolean, pdf?: File | null): Promise<Report> {
+/**
+ * Cria (reportId nulo) ou atualiza o relatório do mês.
+ * Único por cliente + mês: criar um mês que já existe dá erro em vez de sobrescrever.
+ */
+export async function saveReport(
+  input: ReportInput,
+  publish: boolean,
+  pdf: File | null | undefined,
+  reportId: string | null,
+): Promise<Report> {
   const p = requireStaff();
   const client = assertClientAccess(p, input.client_id);
   if (!/^\d{4}-\d{2}-01$/.test(input.month)) throw new AppError('Escolha o mês do relatório.');
 
-  let report = db.reports.find((r) => r.client_id === client.id && r.month === input.month);
+  const sameMonth = db.reports.find((r) => r.client_id === client.id && r.month === input.month);
+  let report = reportId ? db.reports.find((r) => r.id === reportId && r.client_id === client.id) : undefined;
+  if (reportId && !report) throw new AppError('Relatório não encontrado.');
+  if (sameMonth && sameMonth !== report) {
+    throw new AppError('Este mês já tem relatório. Volte e use Editar nele.');
+  }
+  // Valida e envia o PDF antes de gravar, para um erro não deixar o relatório salvo pela metade.
+  let pdfPath: string | null = null;
+  if (pdf) {
+    if (pdf.type !== 'application/pdf') throw new AppError('O relatório precisa ser um arquivo PDF.');
+    pdfPath = await uploadToStorage('report-pdfs', client.agency_id, client.id, pdf);
+  }
   const ts = nowIso();
   if (!report) {
     report = {
@@ -54,10 +73,7 @@ export async function saveReport(input: ReportInput, publish: boolean, pdf?: Fil
     db.reports.push(report);
   }
   Object.assign(report, input, { updated_at: ts });
-  if (pdf) {
-    if (pdf.type !== 'application/pdf') throw new AppError('O relatório precisa ser um arquivo PDF.');
-    report.pdf_path = await uploadToStorage('report-pdfs', client.agency_id, client.id, pdf);
-  }
+  if (pdf) report.pdf_path = pdfPath;
   if (publish) report.published = true;
   return delay({ ...report });
 }

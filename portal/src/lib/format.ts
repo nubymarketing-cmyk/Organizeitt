@@ -51,7 +51,8 @@ export function formatBytes(n: number | null): string {
 export function initials(name: string): string {
   return name
     .split(' ')
-    .filter((w) => w.length > 2 || /^[A-Z]/.test(w))
+    .filter((w) => w && !/^(dra?|sr|sra)\.?$/i.test(w))
+    .filter((w) => w.length > 2 || /^[A-ZÀ-Ú]/.test(w))
     .slice(0, 2)
     .map((w) => w.charAt(0).toUpperCase())
     .join('');

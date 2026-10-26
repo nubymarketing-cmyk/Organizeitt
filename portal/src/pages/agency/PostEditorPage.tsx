@@ -251,7 +251,9 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
             </Button>
           ) : null}
           {p && status === 'changes_requested' ? (
-            <Button disabled={busy} loading={newVersion.isPending} onClick={() => newVersion.mutate({ id: p.id, caption: form.caption, media: form.media })}>
+            <Button disabled={busy} loading={newVersion.isPending} onClick={() =>
+                update.mutate({ id: p.id, input: payload() }, { onSuccess: () => newVersion.mutate({ id: p.id, caption: form.caption, media: form.media }) })
+              }>
               Enviar nova versão (v{p.current_version + 1})
             </Button>
           ) : null}

@@ -12,8 +12,8 @@ export function useReports(clientId: string | null | undefined) {
 export function useSaveReport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ input, publish, pdf }: { input: ReportInput; publish: boolean; pdf?: File | null }) =>
-      saveReport(input, publish, pdf),
+    mutationFn: ({ input, publish, pdf, reportId }: { input: ReportInput; publish: boolean; pdf?: File | null; reportId: string | null }) =>
+      saveReport(input, publish, pdf, reportId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['reports'] }),
   });
 }

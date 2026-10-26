@@ -21,7 +21,13 @@ export function AgencyReports({ clientId }: { clientId: string }) {
   const [editing, setEditing] = useState<Report | 'new' | null>(null);
 
   if (editing) {
-    return <ReportForm clientId={clientId} report={editing === 'new' ? null : editing} onDone={() => setEditing(null)} />;
+    return (
+      <ReportForm
+        clientId={clientId}
+        report={editing === 'new' ? null : editing}
+        onDone={() => setEditing(null)}
+      />
+    );
   }
 
   return (
@@ -74,7 +80,15 @@ function toNumber(s: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function ReportForm({ clientId, report, onDone }: { clientId: string; report: Report | null; onDone: () => void }) {
+function ReportForm({
+  clientId,
+  report,
+  onDone,
+}: {
+  clientId: string;
+  report: Report | null;
+  onDone: () => void;
+}) {
   const save = useSaveReport();
   const [month, setMonth] = useState((report?.month ?? monthKey(new Date())).slice(0, 7));
   const [values, setValues] = useState<Record<NumKey, string>>(() => ({
@@ -92,7 +106,7 @@ function ReportForm({ clientId, report, onDone }: { clientId: string; report: Re
   const contacts = toNumber(values.contacts);
   const suggestedCpl = spend && contacts ? Math.round((spend / contacts) * 100) / 100 : null;
 
-  const submit = (publish: boolean) =>
+  const submit = (publish: boolean) => {
     save.mutate(
       {
         input: {
@@ -108,9 +122,11 @@ function ReportForm({ clientId, report, onDone }: { clientId: string; report: Re
         },
         publish,
         pdf,
+        reportId: report?.id ?? null,
       },
       { onSuccess: onDone },
     );
+  };
 
   return (
     <Card className="space-y-4">
