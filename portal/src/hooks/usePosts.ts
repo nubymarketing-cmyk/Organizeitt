@@ -9,12 +9,16 @@ import {
   markPostPublished,
   requestPostChanges,
   returnPostToCreation,
+  setPostStatus,
+  setPostAssignee,
+  deletePost,
   submitPostForApproval,
   updatePost,
   uploadPostMedia,
   type PostFilters,
   type PostInput,
 } from '../services/posts';
+import type { PostStatus } from '../types/database';
 
 export function usePosts(filters: PostFilters = {}) {
   return useQuery({ queryKey: ['posts', filters], queryFn: () => listPosts(filters) });
@@ -82,6 +86,34 @@ export function useMarkPublished() {
 export function useReturnToCreation() {
   const invalidate = useInvalidatePosts();
   return useMutation({ mutationFn: returnPostToCreation, onSuccess: invalidate });
+}
+
+export function useSetPostStatus() {
+  const invalidate = useInvalidatePosts();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: PostStatus }) => setPostStatus(id, status),
+    onSuccess: invalidate,
+  });
+}
+
+export function useSetPostAssignee() {
+  const invalidate = useInvalidatePosts();
+  return useMutation({
+    mutationFn: ({ id, assigneeId }: { id: string; assigneeId: string | null }) => setPostAssignee(id, assigneeId),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeletePost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deletePost,
+    onSuccess: (_data, id) => {
+      qc.removeQueries({ queryKey: ['post', id] });
+      qc.invalidateQueries({ queryKey: ['posts'] });
+      qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
 }
 
 export function useAddComment() {

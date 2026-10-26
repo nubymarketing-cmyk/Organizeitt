@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AgencyLayout } from './components/layout/AgencyLayout';
 import { ClientLayout } from './components/layout/ClientLayout';
 import { HomeRedirect, RequireAuth } from './components/layout/RequireAuth';
+import { useAuthListener } from './hooks/useAuth';
 import { LoginPage } from './pages/auth/LoginPage';
 import { InicioPage } from './pages/client/InicioPage';
 import { CalendarioPage } from './pages/client/CalendarioPage';
@@ -11,8 +12,12 @@ import { ArquivosPage } from './pages/client/ArquivosPage';
 import { ClientesPage } from './pages/agency/ClientesPage';
 import { ClienteDetalhePage } from './pages/agency/ClienteDetalhePage';
 import { PostEditorPage } from './pages/agency/PostEditorPage';
+import { EquipePage } from './pages/agency/EquipePage';
+import { ConfiguracoesPage } from './pages/agency/ConfiguracoesPage';
+import { PlataformaPage } from './pages/platform/PlataformaPage';
 
 export function App() {
+  useAuthListener();
   return (
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
@@ -29,11 +34,16 @@ export function App() {
       </Route>
 
       <Route element={<RequireAuth area="staff" />}>
-        <Route path="/agencia" element={<AgencyLayout />}>
-          <Route index element={<ClientesPage />} />
-          <Route path="clientes/:clientId" element={<ClienteDetalhePage />} />
-          <Route path="clientes/:clientId/posts/novo" element={<PostEditorPage />} />
-          <Route path="posts/:id" element={<PostEditorPage />} />
+        <Route element={<AgencyLayout />}>
+          <Route path="/agencia">
+            <Route index element={<ClientesPage />} />
+            <Route path="clientes/:clientId" element={<ClienteDetalhePage />} />
+            <Route path="clientes/:clientId/posts/novo" element={<PostEditorPage />} />
+            <Route path="posts/:id" element={<PostEditorPage />} />
+            <Route path="equipe" element={<EquipePage />} />
+            <Route path="configuracoes" element={<ConfiguracoesPage />} />
+          </Route>
+          <Route path="/plataforma" element={<PlataformaPage />} />
         </Route>
       </Route>
 

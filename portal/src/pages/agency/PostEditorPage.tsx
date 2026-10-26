@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import type { Network, Post, PostFormat } from '../../types/database';
+import type { Network, Post, PostFormat, PostStatus } from '../../types/database';
 import {
   useCreatePost,
   useCreateVersion,
+  useDeletePost,
   useMarkPublished,
   usePost,
   useReturnToCreation,
+  useSetPostAssignee,
+  useSetPostStatus,
   useSubmitPost,
   useUpdatePost,
   useUploadPostMedia,
 } from '../../hooks/usePosts';
+import { useSession } from '../../hooks/useAuth';
+import { useTeam } from '../../hooks/useAgency';
 import { useClient } from '../../hooks/useClients';
-import { FORMAT_LABEL, NETWORK_LABEL } from '../../lib/format';
+import { FORMAT_LABEL, NETWORK_LABEL, STATUS_LABEL } from '../../lib/format';
 import { Button, Card, ConfirmButton, ErrorState, Field, InlineError, Input, MediaView, Select, Skeleton, StatusBadge, Textarea } from '../../components/ui';
 import { CommentThread, MediaCarousel, VersionHistory } from '../../components/PostParts';
 
@@ -23,9 +28,11 @@ interface FormState {
   format: PostFormat;
   scheduled_at: string; // valor do input datetime-local
   media: string[];
+  status: PostStatus;
+  assignee_id: string;
 }
 
-const EMPTY: FormState = { title: '', caption: '', network: 'instagram', format: 'imagem', scheduled_at: '', media: [] };
+const EMPTY: FormState = { title: '', caption: '', network: 'instagram', format: 'imagem', scheduled_at: '', media: [], status: 'in_creation', assignee_id: '' };
 
 function toLocalInput(iso: string | null) {
   if (!iso) return '';
@@ -59,6 +66,12 @@ export function PostEditorPage() {
 function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typeof usePost>['data'] | null }) {
   const navigate = useNavigate();
   const client = useClient(clientId);
+  const { data: profile } = useSession();
+  const team = useTeam();
+  // Responsável: admin ou alguém da equipe que atende este cliente.
+  const assignees = (team.data ?? []).filter(
+    (m) => !m.pending && (m.role === 'agency_admin' || (m.role === 'agency_member' && m.client_ids.includes(clientId))),
+  );
   const p: Post | null = detail?.post ?? null;
   const current = detail?.versions.find((v) => v.version_number === p?.current_version);
 
@@ -71,9 +84,16 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
           format: p.format,
           scheduled_at: toLocalInput(p.scheduled_at),
           media: current?.media ?? [],
+          status: p.status,
+          assignee_id: p.assignee_id ?? '',
         }
-      : EMPTY,
+      : { ...EMPTY, assignee_id: profile?.id ?? '' },
   );
+  // Botões de fluxo (enviar, publicar, voltar) mudam o status salvo: o campo acompanha.
+  const savedStatus = p?.status;
+  useEffect(() => {
+    if (savedStatus) setForm((f) => ({ ...f, status: savedStatus }));
+  }, [savedStatus]);
   const [savedMsg, setSavedMsg] = useState(false);
   useEffect(() => {
     if (!savedMsg) return;
@@ -88,11 +108,18 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
   const publish = useMarkPublished();
   const back = useReturnToCreation();
   const upload = useUploadPostMedia();
+  const setStatus = useSetPostStatus();
+  const setAssignee = useSetPostAssignee();
+  const remove = useDeletePost();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const status = p?.status ?? 'in_creation';
   const contentEditable = status === 'in_creation' || status === 'changes_requested';
-  const busy = create.isPending || update.isPending || submit.isPending || newVersion.isPending || publish.isPending || back.isPending;
+  const busy =
+    create.isPending || update.isPending || submit.isPending || newVersion.isPending || publish.isPending || back.isPending ||
+    setStatus.isPending || setAssignee.isPending || remove.isPending;
+  const statusChanged = !!p && form.status !== p.status;
+  const assigneeChanged = !!p && form.assignee_id !== (p.assignee_id ?? '');
   const lastChangeRequest = [...(detail?.comments ?? [])].reverse().find((c) => c.kind === 'change_request');
 
   const payload = () => ({
@@ -104,11 +131,23 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
     media: form.media,
   });
 
-  const save = () => {
-    if (!p) {
-      create.mutate({ ...payload(), client_id: clientId }, { onSuccess: (created) => navigate(`/agencia/posts/${created.id}`, { replace: true }) });
-    } else {
-      update.mutate({ id: p.id, input: payload() }, { onSuccess: () => setSavedMsg(true) });
+  // Salva os dados e depois aplica responsável e status, se mudaram.
+  // Cada etapa mostra o próprio erro; um erro interrompe as seguintes.
+  const save = async () => {
+    try {
+      if (!p) {
+        const created = await create.mutateAsync({ ...payload(), client_id: clientId });
+        if (form.assignee_id) await setAssignee.mutateAsync({ id: created.id, assigneeId: form.assignee_id });
+        if (form.status !== 'in_creation') await setStatus.mutateAsync({ id: created.id, status: form.status });
+        navigate(`/agencia/posts/${created.id}`, { replace: true });
+        return;
+      }
+      await update.mutateAsync({ id: p.id, input: payload() });
+      if (assigneeChanged) await setAssignee.mutateAsync({ id: p.id, assigneeId: form.assignee_id || null });
+      if (statusChanged) await setStatus.mutateAsync({ id: p.id, status: form.status });
+      setSavedMsg(true);
+    } catch {
+      // o erro já aparece na tela pelo estado da mutação
     }
   };
 
@@ -127,7 +166,9 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
       return { ...f, media: m };
     });
 
-  const error = create.error || update.error || submit.error || newVersion.error || publish.error || back.error || upload.error;
+  const error =
+    create.error || update.error || submit.error || newVersion.error || publish.error || back.error || upload.error ||
+    setStatus.error || setAssignee.error || remove.error;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -176,6 +217,28 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
             <Input type="datetime-local" value={form.scheduled_at} onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })} />
           </Field>
         </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Responsável">
+            <Select value={form.assignee_id} onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}>
+              <option value="">Ninguém</option>
+              {assignees.map((m) => (
+                <option key={m.id} value={m.id}>{m.full_name}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as PostStatus })}>
+              {(Object.keys(STATUS_LABEL) as PostStatus[]).map((st) => (
+                <option key={st} value={st}>{STATUS_LABEL[st]}</option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        {statusChanged || (!p && form.status !== 'in_creation') ? (
+          <p className="-mt-2 text-xs text-dim">
+            {form.status === 'in_creation' ? 'Em criação o cliente não vê o post.' : 'O cliente passa a ver o post com este status.'} Vale ao salvar.
+          </p>
+        ) : null}
 
         {contentEditable ? (
           <>
@@ -234,8 +297,8 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
         {savedMsg ? <p className="text-sm text-ok">Salvo.</p> : null}
 
         <div className="flex flex-wrap gap-2">
-          {status !== 'changes_requested' ? (
-            <Button variant="secondary" loading={create.isPending || update.isPending} disabled={busy} onClick={save}>
+          {status !== 'changes_requested' || statusChanged || assigneeChanged ? (
+            <Button variant="secondary" loading={create.isPending || update.isPending} disabled={busy} onClick={() => void save()}>
               {p ? 'Salvar' : 'Criar post'}
             </Button>
           ) : null}
@@ -271,6 +334,17 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
               question="Voltar este post para criação? O cliente deixa de vê-lo até ser reenviado."
               confirmLabel="Voltar para criação"
               onConfirm={() => back.mutate(p.id)}
+            />
+          ) : null}
+          {p ? (
+            <ConfirmButton
+              variant="danger"
+              disabled={busy}
+              loading={remove.isPending}
+              label="Excluir post"
+              question="Excluir este post? Versões, comentários e mídias somem e não dá para desfazer."
+              confirmLabel="Excluir"
+              onConfirm={() => remove.mutate(p.id, { onSuccess: () => navigate(`/agencia/clientes/${clientId}`, { replace: true }) })}
             />
           ) : null}
         </div>

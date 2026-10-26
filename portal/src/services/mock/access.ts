@@ -3,11 +3,12 @@
 // existem só para a interface se comportar igual desde já.
 
 import type { Profile } from '../../types/database';
+import { AppError } from '../errors';
 import { db } from './db';
 
-const SESSION_KEY = 'nuby_mock_session';
+export { AppError };
 
-export class AppError extends Error {}
+const SESSION_KEY = 'nuby_mock_session';
 
 let currentUserId: string | null = readStoredSession();
 

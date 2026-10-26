@@ -3,14 +3,36 @@
 Portal onde a agência e as clínicas centralizam calendário de conteúdo, aprovação de posts,
 relatórios mensais e arquivos da marca. O escopo completo está no documento do projeto.
 
-## Estado atual: Etapa 0.5 (front com dados de demonstração)
+## Estado atual: Supabase ligado (com modo demonstração de reserva)
 
 - Telas do MVP prontas, com o visual do protótipo "Nuby · Painel do Cliente".
-- Ainda **sem Supabase**: os dados vêm de um banco simulado em `src/services/mock/`,
-  salvo no `localStorage` do navegador (chave `nuby_mock_db_v1`).
-- O banco simulado já imita as regras de acesso do escopo (RLS): cliente só vê o
-  próprio `client_id`, nunca vê post `in_creation` nem relatório não publicado.
-- As mudanças de status seguem a seção 5, com as mesmas mensagens de erro das futuras RPCs.
+- Com `VITE_SUPABASE_URL` preenchido no `.env.local`, os dados vêm do Supabase: banco, login por
+  link mágico e arquivos no Storage.
+- Sem `.env.local`, o portal roda com dados de demonstração (`src/services/mock/`, salvos no
+  `localStorage`). A página publicada como demonstração continua assim.
+- As regras de acesso (seção 6) ficam no banco, em `supabase/migrations/0001_portal.sql`: cliente só
+  vê o próprio `client_id`, nunca vê post `in_creation` nem relatório não publicado.
+- O front só lê tabelas direto. Toda mudança passa por uma RPC com as regras da seção 5.
+- Cadastro só por convite: um e-mail sem convite não consegue criar conta.
+
+## Ligar o Supabase (uma vez)
+
+1. Crie um projeto em [supabase.com](https://supabase.com) (região São Paulo).
+2. Em **SQL Editor**, cole e rode cada arquivo de `supabase/migrations/`, em ordem (`0001`, `0002`, ...).
+3. Abra `supabase/bootstrap.sql`, troque o nome e o e-mail do primeiro admin, cole no SQL Editor e rode.
+4. Em **Authentication > URL Configuration**:
+   - **Site URL**: o endereço do portal (`http://localhost:5173` enquanto testa).
+   - **Redirect URLs**: adicione `http://localhost:5173/**` e, depois, o endereço de produção com `/**`.
+5. Em **Project Settings > API**, copie a URL do projeto e a chave `anon` (ou `publishable`).
+   Crie `portal/.env.local` a partir do `.env.example` e preencha `VITE_SUPABASE_URL` e
+   `VITE_SUPABASE_ANON_KEY`.
+6. Rode `npm run dev`, entre com o e-mail do passo 3 e clique no link que chegar.
+
+Depois disso, o admin convida as clínicas e a equipe pelo próprio portal (botão **Convidar usuário**).
+A pessoa recebe o link por e-mail e, no primeiro acesso, a conta é criada com o papel do convite.
+
+**E-mails:** o envio padrão do Supabase serve só para teste (poucos e-mails por hora). Para uso real,
+configure um SMTP próprio (por exemplo, Resend) em **Authentication > Emails > SMTP Settings**.
 
 ## Rodar
 
@@ -28,25 +50,40 @@ e o link **Restaurar dados de exemplo**.
 
 | Pasta | O que tem |
 |---|---|
-| `src/types/database.ts` | Tipos das tabelas (vira `supabase gen types` na Etapa 2) |
-| `src/services/<domínio>/` | Únicas funções que acessam dados: posts, reports, files, clients, auth |
+| `supabase/migrations/` | Banco: tabelas, RLS, RPCs, gatilho de convite e buckets |
+| `supabase/bootstrap.sql` | Cria a agência e o convite do primeiro admin |
+| `src/types/database.ts` | Tipos das tabelas |
+| `src/services/<domínio>/` | Únicas funções que acessam dados: posts, reports, files, clients, auth. `supabase.ts` e `mock.ts` têm as duas versões; `index.ts` escolhe |
 | `src/services/storage.ts` | Upload, limites de tamanho e URL de download |
-| `src/services/mock/` | Banco simulado e regras de acesso (sai quando o Supabase entrar) |
+| `src/services/mock/` | Banco simulado do modo demonstração |
 | `src/hooks/` | Hooks do TanStack Query usados pelas telas |
 | `src/components/` | Componentes de interface e blocos compartilhados |
 | `src/pages/client/` | Início, Calendário, Detalhe do post, Relatórios, Arquivos |
 | `src/pages/agency/` | Clientes, Detalhe do cliente, Editor de post, Relatórios |
 
-As telas nunca acessam dados direto: sempre `página -> hook -> service`. Para ligar o Supabase,
-basta trocar o corpo das funções em `src/services/` mantendo as assinaturas.
+As telas nunca acessam dados direto: sempre `página -> hook -> service`.
+
+## Papéis
+
+| Papel | O que faz |
+|---|---|
+| Dono da plataforma (`platform_admins`) | Vê todas as agências em `/plataforma`, muda plano e status |
+| Admin da agência | Tudo da própria agência: clientes, equipe, marca, convites |
+| Equipe da agência | Só os clientes atribuídos a ela na tela Equipe |
+| Dono da clínica | Aprova ou pede ajuste, vê resultados e arquivos |
+| Equipe da clínica | Vê e comenta, não aprova |
+
+Planos: Starter até 5 clientes, Pro até 20, Agência sem limite. Agência nova começa com 14 dias de Pro.
 
 ## Rotas
 
 - `/login` - link mágico (e-mail)
 - `/app` - cliente: Início, `/app/calendario`, `/app/posts/:id`, `/app/relatorios`, `/app/arquivos`
-- `/agencia` - equipe: lista de clientes, `/agencia/clientes/:id`, `/agencia/posts/:id`
+- `/agencia` - equipe: lista de clientes, `/agencia/clientes/:id`, `/agencia/posts/:id`, `/agencia/equipe`, `/agencia/configuracoes`
+- `/plataforma` - dono da plataforma: agências, planos e uso
 
 ## Deploy
 
 `vercel.json` já redireciona todas as rotas para o `index.html`. Na Vercel, configurar
-**Root Directory = `portal`**. Este diretório fica fora do deploy do Organize It no GitHub Pages.
+**Root Directory = `portal`** e as variáveis `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` e
+`VITE_APP_URL` (endereço de produção). Lembre de incluir esse endereço nas Redirect URLs do Supabase. Este diretório fica fora do deploy do Organize It no GitHub Pages.

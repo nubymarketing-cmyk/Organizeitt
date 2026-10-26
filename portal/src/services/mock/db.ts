@@ -1,4 +1,4 @@
-// Banco em memória usado enquanto o Supabase não está ligado (Etapa 0.5).
+// Banco em memória do modo demonstração (sem .env.local).
 // Mesmo formato das tabelas da seção 4 do escopo. Some ao recarregar a página.
 
 import type {
@@ -44,21 +44,21 @@ const RECEP = 'user-recepcao-ana';
 const HELENA = 'user-helena';
 
 const agencies: Agency[] = [
-  { id: AG, created_at: at(-200), name: 'Nuby Marketing', slug: 'nuby', logo_url: null, primary_color: '#8B5CF6' },
+  { id: AG, created_at: at(-200), name: 'Nuby Marketing', slug: 'nuby', logo_url: null, primary_color: '#8B5CF6', plan: 'agencia', status: 'active', trial_ends_at: null, onboarding_done_at: at(-200) },
 ];
 
 const clients: Client[] = [
-  { id: ANA, created_at: at(-180), agency_id: AG, name: 'Odonto Ana', specialty: 'Odontologia', contact_email: 'contato@odontoana.com.br', active: true },
-  { id: BEM, created_at: at(-120), agency_id: AG, name: 'Espaço Bem-Viver', specialty: 'Psicologia', contact_email: 'ola@bemviver.com.br', active: true },
-  { id: MOV, created_at: at(-90), agency_id: AG, name: 'Clínica Movere', specialty: 'Fisioterapia', contact_email: 'adm@movere.com.br', active: true },
+  { id: ANA, created_at: at(-180), agency_id: AG, name: 'Odonto Ana', specialty: 'Odontologia', contact_email: 'contato@odontoana.com.br', active: true, color: null },
+  { id: BEM, created_at: at(-120), agency_id: AG, name: 'Espaço Bem-Viver', specialty: 'Psicologia', contact_email: 'ola@bemviver.com.br', active: true, color: null },
+  { id: MOV, created_at: at(-90), agency_id: AG, name: 'Clínica Movere', specialty: 'Fisioterapia', contact_email: 'adm@movere.com.br', active: true, color: null },
 ];
 
 const profiles: Profile[] = [
-  { id: ADMIN, created_at: at(-200), agency_id: AG, client_id: null, role: 'agency_admin', full_name: 'Marina Nuby', email: 'marina@nuby.com.br' },
-  { id: MEMBER, created_at: at(-150), agency_id: AG, client_id: null, role: 'agency_member', full_name: 'Rafa Criação', email: 'rafa@nuby.com.br' },
-  { id: DRA_ANA, created_at: at(-180), agency_id: AG, client_id: ANA, role: 'client_owner', full_name: 'Dra. Ana Souza', email: 'ana@odontoana.com.br' },
-  { id: RECEP, created_at: at(-60), agency_id: AG, client_id: ANA, role: 'client_member', full_name: 'Juliana Recepção', email: 'recepcao@odontoana.com.br' },
-  { id: HELENA, created_at: at(-120), agency_id: AG, client_id: BEM, role: 'client_owner', full_name: 'Helena Braga', email: 'helena@bemviver.com.br' },
+  { id: ADMIN, created_at: at(-200), agency_id: AG, client_id: null, role: 'agency_admin', full_name: 'Marina Nuby', email: 'marina@nuby.com.br', tour_done_at: null },
+  { id: MEMBER, created_at: at(-150), agency_id: AG, client_id: null, role: 'agency_member', full_name: 'Rafa Criação', email: 'rafa@nuby.com.br', tour_done_at: null },
+  { id: DRA_ANA, created_at: at(-180), agency_id: AG, client_id: ANA, role: 'client_owner', full_name: 'Dra. Ana Souza', email: 'ana@odontoana.com.br', tour_done_at: null },
+  { id: RECEP, created_at: at(-60), agency_id: AG, client_id: ANA, role: 'client_member', full_name: 'Juliana Recepção', email: 'recepcao@odontoana.com.br', tour_done_at: null },
+  { id: HELENA, created_at: at(-120), agency_id: AG, client_id: BEM, role: 'client_owner', full_name: 'Helena Braga', email: 'helena@bemviver.com.br', tour_done_at: null },
 ];
 
 // Mídia de demonstração: "demo:<cor>:<rótulo>" vira um bloco colorido na tela.
@@ -108,6 +108,7 @@ for (const s of seedPosts) {
     status: s.status,
     current_version: s.versions,
     created_by: MEMBER,
+    assignee_id: MEMBER,
   });
   for (let v = 1; v <= s.versions; v++) {
     post_versions.push({

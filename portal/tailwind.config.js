@@ -24,7 +24,8 @@ export default {
         sans: ['Manrope', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        brand: 'linear-gradient(135deg,#8B5CF6,#3B82F6)',
+        // Cores da marca vêm de variáveis: o portal do cliente usa a cor da agência (white label).
+        brand: 'linear-gradient(135deg,var(--brand-from),var(--brand-to))',
       },
     },
   },

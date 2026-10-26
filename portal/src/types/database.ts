@@ -1,5 +1,4 @@
-// Tipos escritos à mão a partir da seção 4 do escopo.
-// Na Etapa 2 este arquivo é substituído pela saída de `supabase gen types typescript`.
+// Tipos escritos à mão a partir da seção 4 do escopo, iguais às tabelas de supabase/migrations/0001_portal.sql.
 
 export type UserRole = 'agency_admin' | 'agency_member' | 'client_owner' | 'client_member';
 export type PostStatus =
@@ -12,6 +11,8 @@ export type Network = 'instagram' | 'facebook' | 'tiktok' | 'linkedin' | 'youtub
 export type PostFormat = 'imagem' | 'carrossel' | 'video' | 'story' | 'reels';
 export type CommentKind = 'comment' | 'approval' | 'change_request';
 export type FileFolder = 'marca' | 'artes_finais' | 'fotos_videos' | 'documentos';
+export type AgencyPlan = 'starter' | 'pro' | 'agencia';
+export type AgencyStatus = 'trial' | 'active' | 'suspended' | 'canceled';
 
 export interface Agency {
   id: string;
@@ -20,6 +21,10 @@ export interface Agency {
   slug: string;
   logo_url: string | null;
   primary_color: string | null;
+  plan: AgencyPlan;
+  status: AgencyStatus;
+  trial_ends_at: string | null;
+  onboarding_done_at: string | null;
 }
 
 export interface Client {
@@ -30,6 +35,8 @@ export interface Client {
   specialty: string | null;
   contact_email: string | null;
   active: boolean;
+  /** Cor do cliente no calendário geral. */
+  color: string | null;
 }
 
 export interface Profile {
@@ -40,6 +47,7 @@ export interface Profile {
   role: UserRole;
   full_name: string;
   email: string;
+  tour_done_at: string | null;
 }
 
 export interface Post {
@@ -56,6 +64,8 @@ export interface Post {
   status: PostStatus;
   current_version: number;
   created_by: string;
+  /** Responsável da equipe pelo post. */
+  assignee_id: string | null;
 }
 
 export interface PostVersion {
@@ -114,4 +124,4 @@ export interface FileRecord {
   uploaded_by: string;
 }
 
-export type StorageBucket = 'post-media' | 'client-files' | 'report-pdfs';
+export type StorageBucket = 'post-media' | 'client-files' | 'report-pdfs' | 'agency-assets';

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { useIsPlatformAdmin } from '../../hooks/useAgency';
 import { useSession, useSignOut } from '../../hooks/useAuth';
 import { ROLE_LABEL } from '../../lib/format';
 import { cx } from '../ui';
@@ -6,7 +7,15 @@ import { Logo } from './Logo';
 
 export function AgencyLayout() {
   const { data: profile } = useSession();
+  const platform = useIsPlatformAdmin();
   const signOut = useSignOut();
+  const isAdmin = profile?.role === 'agency_admin';
+  const items = [
+    { to: '/agencia', label: 'Clientes', end: true, show: true },
+    { to: '/agencia/equipe', label: 'Equipe', show: isAdmin },
+    { to: '/agencia/configuracoes', label: 'Configurações', show: isAdmin },
+    { to: '/plataforma', label: 'Plataforma', show: !!platform.data },
+  ].filter((i) => i.show);
 
   return (
     <div className="min-h-screen bg-night md:flex">
@@ -16,16 +25,19 @@ export function AgencyLayout() {
             <Logo small />
             <p className="text-xs text-dim">área da agência</p>
           </div>
-          <nav className="flex gap-2 md:mt-8 md:flex-col">
-            <NavLink
-              to="/agencia"
-              end
-              className={({ isActive }) =>
-                cx('rounded-lg px-3 py-2 text-sm font-semibold', isActive ? 'bg-violet/20 text-white' : 'text-muted')
-              }
-            >
-              Clientes
-            </NavLink>
+          <nav className="-mr-2 flex gap-1 overflow-x-auto md:mr-0 md:mt-8 md:flex-col">
+            {items.map((i) => (
+              <NavLink
+                key={i.to}
+                to={i.to}
+                end={i.end}
+                className={({ isActive }) =>
+                  cx('whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold', isActive ? 'bg-violet/20 text-white' : 'text-muted')
+                }
+              >
+                {i.label}
+              </NavLink>
+            ))}
             <button className="rounded-lg px-3 py-2 text-sm text-lilac md:hidden" onClick={() => signOut.mutate()}>
               Sair
             </button>

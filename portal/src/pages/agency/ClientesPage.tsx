@@ -29,7 +29,7 @@ export function ClientesPage() {
                 Convidar
               </Button>
             ) : null}
-            <Button onClick={() => setCreating(true)}>+ Novo cliente</Button>
+            {isAdmin ? <Button onClick={() => setCreating(true)}>+ Novo cliente</Button> : null}
           </div>
         }
       />
@@ -42,8 +42,15 @@ export function ClientesPage() {
         <ErrorState error={clients.error} onRetry={() => clients.refetch()} />
       ) : !list.length ? (
         <EmptyState
-          title={search ? 'Nenhuma clínica encontrada' : 'Nenhum cliente ainda'}
-          text={search ? 'Confira o nome digitado.' : 'Cadastre a primeira clínica para começar.'}
+          title={search ? 'Nenhuma clínica encontrada' : isAdmin ? 'Nenhum cliente ainda' : 'Nenhum cliente atribuído a você'}
+          text={
+            search
+              ? 'Confira o nome digitado.'
+              : isAdmin
+                ? 'Cadastre a primeira clínica para começar.'
+                : 'Peça ao admin da agência para marcar os clientes que você atende, na tela Equipe.'
+          }
+          action={!search && isAdmin ? <Button onClick={() => setCreating(true)}>Cadastrar a primeira clínica</Button> : undefined}
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

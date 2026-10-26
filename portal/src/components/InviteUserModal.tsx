@@ -6,11 +6,21 @@ import { Button, Field, InlineError, Input, Modal, Select } from './ui';
 
 const ROLES: UserRole[] = ['client_owner', 'client_member', 'agency_member', 'agency_admin'];
 
-/** Convite de usuário. Na Etapa 4 chama a Edge Function invite-user. */
-export function InviteUserModal({ open, onClose, clientId }: { open: boolean; onClose: () => void; clientId?: string }) {
+/** Convite de usuário: registra o convite e envia o link de acesso por e-mail. */
+export function InviteUserModal({
+  open,
+  onClose,
+  clientId,
+  defaultRole = 'client_owner',
+}: {
+  open: boolean;
+  onClose: () => void;
+  clientId?: string;
+  defaultRole?: UserRole;
+}) {
   const clients = useClients();
   const invite = useInviteUser();
-  const empty = { email: '', full_name: '', role: 'client_owner' as UserRole, client_id: clientId ?? '' };
+  const empty = { email: '', full_name: '', role: defaultRole, client_id: clientId ?? '', assigned: [] as string[] };
   const [form, setForm] = useState(empty);
   const [done, setDone] = useState<string | null>(null);
 
@@ -38,7 +48,13 @@ export function InviteUserModal({ open, onClose, clientId }: { open: boolean; on
           onSubmit={(e) => {
             e.preventDefault();
             invite.mutate(
-              { email: form.email, full_name: form.full_name, role: form.role, client_id: isClientRole ? form.client_id || null : null },
+              {
+                email: form.email,
+                full_name: form.full_name,
+                role: form.role,
+                client_id: isClientRole ? form.client_id || null : null,
+                assigned_client_ids: form.role === 'agency_member' ? form.assigned : [],
+              },
               { onSuccess: () => setDone(form.email) },
             );
           }}
@@ -70,6 +86,16 @@ export function InviteUserModal({ open, onClose, clientId }: { open: boolean; on
               </Select>
             </Field>
           ) : null}
+          {form.role === 'agency_member' ? (
+            <div>
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">Clientes que esta pessoa atende</p>
+              <ClientChecklist
+                clients={clients.data ?? []}
+                selected={form.assigned}
+                onChange={(assigned) => setForm({ ...form, assigned })}
+              />
+            </div>
+          ) : null}
           <InlineError error={invite.error} />
           <Button type="submit" className="w-full" loading={invite.isPending}>
             Enviar convite
@@ -77,5 +103,33 @@ export function InviteUserModal({ open, onClose, clientId }: { open: boolean; on
         </form>
       )}
     </Modal>
+  );
+}
+
+/** Lista de clientes para marcar (atribuição da equipe). */
+export function ClientChecklist({
+  clients,
+  selected,
+  onChange,
+}: {
+  clients: Array<{ id: string; name: string }>;
+  selected: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  if (!clients.length) return <p className="text-sm text-dim">Nenhum cliente cadastrado ainda. Dá para atribuir depois, na tela Equipe.</p>;
+  return (
+    <div className="max-h-52 space-y-1 overflow-y-auto rounded-xl border border-line p-2">
+      {clients.map((c) => (
+        <label key={c.id} className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg px-2 hover:bg-white/[.04]">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-violet"
+            checked={selected.includes(c.id)}
+            onChange={(e) => onChange(e.target.checked ? [...selected, c.id] : selected.filter((x) => x !== c.id))}
+          />
+          <span className="text-sm text-white">{c.name}</span>
+        </label>
+      ))}
+    </div>
   );
 }

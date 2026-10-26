@@ -1,9 +1,14 @@
-// Upload e URL de download. Na Etapa 3 vira Supabase Storage com signed URLs curtas.
+// Upload e URL de download: Supabase Storage com signed URLs curtas, ou memória no modo demonstração.
 // Convenção de caminho: {agency_id}/{client_id}/{arquivo}
 
 import type { StorageBucket } from '../types/database';
+import { USE_SUPABASE } from './config';
 import { AppError, canSeeRow, requireProfile } from './mock/access';
 import { delay, storageObjects, uid } from './mock/db';
+import { supabase, toAppError } from './supabase';
+
+/** Validade das URLs de download, em segundos. */
+const SIGNED_URL_TTL = 5 * 60;
 
 const MB = 1024 * 1024;
 
@@ -31,15 +36,23 @@ function pathOwner(path: string) {
 }
 
 export async function uploadToStorage(
-  _bucket: StorageBucket,
+  bucket: StorageBucket,
   agencyId: string,
   clientId: string,
   file: File,
 ): Promise<string> {
-  const p = requireProfile();
   validateUpload(file);
-  if (!canSeeRow(p, { agency_id: agencyId, client_id: clientId })) throw new AppError('Sem permissão para enviar para este cliente.');
   const path = `${agencyId}/${clientId}/${uid()}-${safeName(file.name)}`;
+  if (USE_SUPABASE) {
+    // A regra de quem pode enviar para qual pasta fica nas policies do bucket.
+    const { error } = await supabase()
+      .storage.from(bucket)
+      .upload(path, file, { contentType: file.type || undefined, upsert: false });
+    if (error) throw toAppError(error);
+    return path;
+  }
+  const p = requireProfile();
+  if (!canSeeRow(p, { agency_id: agencyId, client_id: clientId })) throw new AppError('Sem permissão para enviar para este cliente.');
   storageObjects.set(path, URL.createObjectURL(file));
   return delay(path, 400);
 }
@@ -48,7 +61,12 @@ export async function uploadToStorage(
  * URL para exibir ou baixar. Retorna null para mídia de demonstração,
  * que a interface desenha como um bloco colorido.
  */
-export async function getSignedUrl(_bucket: StorageBucket, path: string): Promise<string | null> {
+export async function getSignedUrl(bucket: StorageBucket, path: string): Promise<string | null> {
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase().storage.from(bucket).createSignedUrl(path, SIGNED_URL_TTL);
+    if (error) return null;
+    return data.signedUrl;
+  }
   const p = requireProfile();
   if (!canSeeRow(p, pathOwner(path))) throw new AppError('Arquivo não encontrado.');
   return delay(storageObjects.get(path) ?? null, 80);

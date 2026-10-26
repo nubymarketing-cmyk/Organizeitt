@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useSession } from '../../hooks/useAuth';
 import { useApprovePost, usePost, useRequestChanges } from '../../hooks/usePosts';
 import { FORMAT_LABEL, NETWORK_LABEL, formatDateTime } from '../../lib/format';
 import { Button, Card, ErrorState, InlineError, Skeleton, StatusBadge, Textarea } from '../../components/ui';
@@ -8,6 +9,9 @@ import { CommentThread, MediaCarousel, VersionHistory } from '../../components/P
 export function PostDetalhePage() {
   const { id } = useParams();
   const post = usePost(id);
+  const { data: profile } = useSession();
+  // Equipe da clínica só visualiza e comenta; quem aprova é o dono.
+  const canApprove = profile?.role === 'client_owner';
   const approve = useApprovePost();
   const requestChanges = useRequestChanges();
   const [asking, setAsking] = useState(false);
@@ -58,7 +62,9 @@ export function PostDetalhePage() {
         <p className="whitespace-pre-line text-sm leading-relaxed text-white">{current?.caption || p.caption || 'sem legenda'}</p>
       </Card>
 
-      {awaiting ? (
+      {awaiting && !canApprove ? (
+        <Card className="text-sm text-muted">Este post está esperando o ok do responsável pela clínica. Se quiser, deixe um comentário abaixo.</Card>
+      ) : awaiting ? (
         <Card className="border-violet/40 bg-violet/10">
           {asking ? (
             <div className="space-y-3">

@@ -1,9 +1,23 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type { Profile } from '../types/database';
-import { getSessionProfile, openMagicLinkDemo, sendMagicLink, signOut } from '../services/auth';
+import { getSessionProfile, onAuthChange, openMagicLinkDemo, sendMagicLink, signOut } from '../services/auth';
 
 export function useSession() {
   return useQuery({ queryKey: ['session'], queryFn: getSessionProfile, staleTime: Infinity });
+}
+
+/** Recarrega a sessão quando o link mágico é aberto ou a pessoa sai em outra aba. */
+export function useAuthListener() {
+  const qc = useQueryClient();
+  useEffect(
+    () =>
+      onAuthChange(() => {
+        qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'session' });
+        qc.invalidateQueries({ queryKey: ['session'] });
+      }),
+    [qc],
+  );
 }
 
 export function useSendMagicLink() {

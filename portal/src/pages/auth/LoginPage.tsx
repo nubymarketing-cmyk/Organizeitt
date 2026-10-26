@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useOpenMagicLinkDemo, useSendMagicLink, useSession } from '../../hooks/useAuth';
 import { ROLE_LABEL } from '../../lib/format';
 import { isStaffRole } from '../../lib/roles';
-import { listDemoUsers, resetDemo } from '../../services/auth';
+import { IS_DEMO, listDemoUsers, resetDemo } from '../../services/auth';
 import { Button, InlineError, Input } from '../../components/ui';
 import { Logo } from '../../components/layout/Logo';
 
@@ -14,6 +14,7 @@ export function LoginPage() {
   const openDemo = useOpenMagicLinkDemo();
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [linkError] = useState(readLinkError);
 
   if (session.data) return <Navigate to={isStaffRole(session.data.role) ? '/agencia' : '/app'} replace />;
 
@@ -45,10 +46,14 @@ export function LoginPage() {
             <p className="mt-1 text-sm text-muted">
               Se <span className="text-white">{sentTo}</span> tiver convite, o link de acesso chega em instantes.
             </p>
-            <Button variant="secondary" className="mt-4 w-full" loading={openDemo.isPending} onClick={() => enter(sentTo)}>
-              Abrir o link (demonstração)
-            </Button>
-            <InlineError error={openDemo.error} />
+            {IS_DEMO ? (
+              <>
+                <Button variant="secondary" className="mt-4 w-full" loading={openDemo.isPending} onClick={() => enter(sentTo)}>
+                  Abrir o link (demonstração)
+                </Button>
+                <InlineError error={openDemo.error} />
+              </>
+            ) : null}
             <button className="mt-3 text-xs text-lilac" onClick={() => setSentTo(null)}>
               Usar outro e-mail
             </button>
@@ -67,30 +72,44 @@ export function LoginPage() {
             <Button type="submit" className="w-full py-3" loading={send.isPending}>
               RECEBER LINK DE ACESSO
             </Button>
-            <InlineError error={send.error} />
+            <InlineError error={send.error ?? linkError} />
             <p className="text-center text-xs text-dim">Sem senha. O acesso é só por convite da agência.</p>
           </form>
         )}
 
-        <div className="mt-10 rounded-2xl border border-dashed border-line p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-dim">Modo demonstração · entrar como</p>
-          <div className="space-y-2">
-            {listDemoUsers().map((u) => (
-              <button
-                key={u.id}
-                onClick={() => enter(u.email)}
-                className="flex w-full items-center justify-between rounded-xl bg-white/[.04] px-3 py-2 text-left text-sm hover:bg-white/[.08]"
-              >
-                <span className="text-white">{u.full_name}</span>
-                <span className="text-xs text-muted">{ROLE_LABEL[u.role]}</span>
-              </button>
-            ))}
+        {IS_DEMO ? (
+          <div className="mt-10 rounded-2xl border border-dashed border-line p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-dim">Modo demonstração · entrar como</p>
+            <div className="space-y-2">
+              {listDemoUsers().map((u) => (
+                <button
+                  key={u.id}
+                  onClick={() => enter(u.email)}
+                  className="flex w-full items-center justify-between rounded-xl bg-white/[.04] px-3 py-2 text-left text-sm hover:bg-white/[.08]"
+                >
+                  <span className="text-white">{u.full_name}</span>
+                  <span className="text-xs text-muted">{ROLE_LABEL[u.role]}</span>
+                </button>
+              ))}
+            </div>
+            <button className="mt-3 text-xs text-dim underline-offset-2 hover:underline" onClick={resetDemo}>
+              Restaurar dados de exemplo
+            </button>
           </div>
-          <button className="mt-3 text-xs text-dim underline-offset-2 hover:underline" onClick={resetDemo}>
-            Restaurar dados de exemplo
-          </button>
-        </div>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+/** Link mágico vencido ou e-mail sem convite: o Supabase volta para cá com o erro na URL. */
+function readLinkError(): Error | null {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, '') || window.location.search);
+  if (!params.get('error') && !params.get('error_description')) return null;
+  window.history.replaceState(null, '', window.location.pathname);
+  return new Error(
+    params.get('error_code') === 'otp_expired'
+      ? 'O link de acesso venceu ou já foi usado. Peça um novo abaixo.'
+      : 'Não foi possível entrar com este link. Confira se o e-mail tem convite da agência e peça um novo.',
   );
 }

@@ -1,41 +1,18 @@
-// Login por link mágico. Na Etapa 1 vira supabase.auth.signInWithOtp
-// com shouldCreateUser: false (sem cadastro aberto).
+// Login: Supabase quando configurado, senão o modo demonstração.
 
-import type { Profile } from '../../types/database';
-import { AppError, currentProfile, setCurrentUser } from '../mock/access';
-import { db, delay, resetMockDb } from '../mock/db';
+import { USE_SUPABASE } from '../config';
+import * as mock from './mock';
+import * as sb from './supabase';
 
-export async function getSessionProfile(): Promise<Profile | null> {
-  const p = currentProfile();
-  return delay(p ? { ...p } : null, 50);
-}
+const impl = USE_SUPABASE ? sb : mock;
 
-export async function sendMagicLink(email: string): Promise<void> {
-  const clean = email.trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) throw new AppError('Digite um e-mail válido.');
-  // Não revela se o e-mail existe: a resposta é sempre "link enviado".
-  await delay(null, 500);
-}
+/** Modo demonstração: mostra os atalhos de login e os dados de exemplo. */
+export const IS_DEMO = !USE_SUPABASE;
 
-/** Só no modo demonstração: simula o clique no link recebido por e-mail. */
-export async function openMagicLinkDemo(email: string): Promise<Profile> {
-  const p = db.profiles.find((x) => x.email === email.trim().toLowerCase());
-  if (!p) throw new AppError('Nenhum convite encontrado para este e-mail.');
-  setCurrentUser(p.id);
-  return delay({ ...p }, 200);
-}
+export const getSessionProfile = impl.getSessionProfile;
+export const sendMagicLink = impl.sendMagicLink;
+export const signOut = impl.signOut;
+export const onAuthChange = USE_SUPABASE ? sb.onAuthChange : () => () => {};
 
-export function listDemoUsers(): Profile[] {
-  return db.profiles.map((p) => ({ ...p }));
-}
-
-export async function signOut(): Promise<void> {
-  setCurrentUser(null);
-  await delay(null, 50);
-}
-
-/** Só no modo demonstração: restaura os dados de exemplo. */
-export function resetDemo() {
-  setCurrentUser(null);
-  resetMockDb();
-}
+// Só no modo demonstração.
+export const { openMagicLinkDemo, listDemoUsers, resetDemo } = mock;

@@ -42,6 +42,7 @@ export function useInviteUser() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['client-users'] });
       qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
     },
   });
 }

@@ -105,17 +105,19 @@ function ClientUsers({ clientId }: { clientId: string }) {
         <EmptyState title="Ninguém da clínica tem acesso ainda" text="Convide o dono ou a recepção para começar a aprovar posts." />
       )}
 
-      <div className="border-t border-line pt-4">
-        <ConfirmButton
-          variant="danger"
-          loading={deactivate.isPending}
-          label="Desativar cliente"
-          question="Desativar este cliente? Os dados ficam guardados, mas ele some da lista."
-          confirmLabel="Desativar"
-          onConfirm={() => deactivate.mutate(clientId, { onSuccess: () => navigate('/agencia') })}
-        />
-        <InlineError error={deactivate.error} />
-      </div>
+      {isAdmin ? (
+        <div className="border-t border-line pt-4">
+          <ConfirmButton
+            variant="danger"
+            loading={deactivate.isPending}
+            label="Desativar cliente"
+            question="Desativar este cliente? Os dados ficam guardados, mas ele some da lista."
+            confirmLabel="Desativar"
+            onConfirm={() => deactivate.mutate(clientId, { onSuccess: () => navigate('/agencia') })}
+          />
+          <InlineError error={deactivate.error} />
+        </div>
+      ) : null}
 
       <InviteUserModal open={inviting} onClose={() => setInviting(false)} clientId={clientId} />
     </div>

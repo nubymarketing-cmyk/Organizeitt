@@ -1,4 +1,4 @@
-import type { CommentKind, FileFolder, Network, PostFormat, PostStatus, UserRole } from '../types/database';
+import type { AgencyPlan, AgencyStatus, CommentKind, FileFolder, Network, PostFormat, PostStatus, UserRole } from '../types/database';
 
 const tz = undefined; // usa o fuso do navegador
 
@@ -118,7 +118,27 @@ export const ROLE_LABEL: Record<UserRole, string> = {
   agency_admin: 'Admin da agência',
   agency_member: 'Equipe da agência',
   client_owner: 'Dono da clínica',
-  client_member: 'Recepção da clínica',
+  client_member: 'Equipe da clínica',
+};
+
+export const PLAN_LABEL: Record<AgencyPlan, string> = {
+  starter: 'Starter',
+  pro: 'Pro',
+  agencia: 'Agência',
+};
+
+/** Limite de clientes ativos por plano (null = ilimitado). Igual a plan_client_limit no banco. */
+export const PLAN_CLIENT_LIMIT: Record<AgencyPlan, number | null> = {
+  starter: 5,
+  pro: 20,
+  agencia: null,
+};
+
+export const AGENCY_STATUS_LABEL: Record<AgencyStatus, string> = {
+  trial: 'Em teste',
+  active: 'Ativa',
+  suspended: 'Suspensa',
+  canceled: 'Cancelada',
 };
 
 export const COMMENT_KIND_LABEL: Record<CommentKind, string> = {

@@ -1,9 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useSession, useSignOut } from '../../hooks/useAuth';
+import { useMyAgency } from '../../hooks/useAgency';
 import { useClient } from '../../hooks/useClients';
+import { brandStyle } from '../../lib/brand';
 import { initials } from '../../lib/format';
 import { cx } from '../ui';
-import { Logo } from './Logo';
+import { AgencyBrand } from './AgencyBrand';
 
 const TABS = [
   { to: '/app', label: 'Início', end: true },
@@ -15,10 +17,11 @@ const TABS = [
 export function ClientLayout() {
   const { data: profile } = useSession();
   const client = useClient(profile?.client_id);
+  const agency = useMyAgency();
   const signOut = useSignOut();
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-night">
+    <div className="relative min-h-screen overflow-x-hidden bg-night" style={brandStyle(agency.data?.primary_color)}>
       <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-violet/30 blur-[70px]" />
       <div className="pointer-events-none absolute -right-24 top-40 h-72 w-72 rounded-full bg-azure/20 blur-[70px]" />
 
@@ -34,7 +37,7 @@ export function ClientLayout() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Logo small />
+            <AgencyBrand agency={agency.data} />
             <button className="text-xs text-muted underline-offset-2 hover:underline" onClick={() => signOut.mutate()}>
               Sair
             </button>
