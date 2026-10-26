@@ -93,6 +93,7 @@ export async function inviteUser(input: InviteInput): Promise<void> {
     full_name: input.full_name.trim(),
     email,
     tour_done_at: null,
+    phone: null,
   });
   await delay(null, 500);
 }

@@ -51,6 +51,8 @@ export interface Profile {
   full_name: string;
   email: string;
   tour_done_at: string | null;
+  /** Telefone para avisos por WhatsApp. */
+  phone: string | null;
 }
 
 export interface Post {
@@ -160,6 +162,19 @@ export interface ClientCharge {
   amount: number;
   paid_at: string | null;
   notes: string | null;
+}
+
+export interface AppNotification {
+  id: string;
+  created_at: string;
+  agency_id: string;
+  recipient_id: string;
+  kind: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  post_id: string | null;
+  read_at: string | null;
 }
 
 export type StorageBucket = 'post-media' | 'client-files' | 'report-pdfs' | 'agency-assets';

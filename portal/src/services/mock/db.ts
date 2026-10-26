@@ -54,11 +54,11 @@ const clients: Client[] = [
 ];
 
 const profiles: Profile[] = [
-  { id: ADMIN, created_at: at(-200), agency_id: AG, client_id: null, role: 'agency_admin', full_name: 'Marina Nuby', email: 'marina@nuby.com.br', tour_done_at: null },
-  { id: MEMBER, created_at: at(-150), agency_id: AG, client_id: null, role: 'agency_member', full_name: 'Rafa Criação', email: 'rafa@nuby.com.br', tour_done_at: null },
-  { id: DRA_ANA, created_at: at(-180), agency_id: AG, client_id: ANA, role: 'client_owner', full_name: 'Dra. Ana Souza', email: 'ana@odontoana.com.br', tour_done_at: null },
-  { id: RECEP, created_at: at(-60), agency_id: AG, client_id: ANA, role: 'client_member', full_name: 'Juliana Recepção', email: 'recepcao@odontoana.com.br', tour_done_at: null },
-  { id: HELENA, created_at: at(-120), agency_id: AG, client_id: BEM, role: 'client_owner', full_name: 'Helena Braga', email: 'helena@bemviver.com.br', tour_done_at: null },
+  { id: ADMIN, created_at: at(-200), agency_id: AG, client_id: null, role: 'agency_admin', full_name: 'Marina Nuby', email: 'marina@nuby.com.br', tour_done_at: null, phone: null },
+  { id: MEMBER, created_at: at(-150), agency_id: AG, client_id: null, role: 'agency_member', full_name: 'Rafa Criação', email: 'rafa@nuby.com.br', tour_done_at: null, phone: null },
+  { id: DRA_ANA, created_at: at(-180), agency_id: AG, client_id: ANA, role: 'client_owner', full_name: 'Dra. Ana Souza', email: 'ana@odontoana.com.br', tour_done_at: null, phone: null },
+  { id: RECEP, created_at: at(-60), agency_id: AG, client_id: ANA, role: 'client_member', full_name: 'Juliana Recepção', email: 'recepcao@odontoana.com.br', tour_done_at: null, phone: null },
+  { id: HELENA, created_at: at(-120), agency_id: AG, client_id: BEM, role: 'client_owner', full_name: 'Helena Braga', email: 'helena@bemviver.com.br', tour_done_at: null, phone: null },
 ];
 
 // Mídia de demonstração: "demo:<cor>:<rótulo>" vira um bloco colorido na tela.

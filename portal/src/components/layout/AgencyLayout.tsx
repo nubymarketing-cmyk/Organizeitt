@@ -4,6 +4,7 @@ import { useSession, useSignOut } from '../../hooks/useAuth';
 import { ROLE_LABEL } from '../../lib/format';
 import { cx } from '../ui';
 import { Logo } from './Logo';
+import { NotificationBell } from '../NotificationBell';
 
 export function AgencyLayout() {
   const { data: profile } = useSession();
@@ -24,9 +25,12 @@ export function AgencyLayout() {
     <div className="min-h-screen bg-night md:flex">
       <aside className="border-b border-line bg-panel px-5 py-4 md:sticky md:top-0 md:h-screen md:w-60 md:shrink-0 md:border-b-0 md:border-r md:py-6">
         <div className="flex items-center justify-between md:block">
-          <div>
-            <Logo small />
-            <p className="text-xs text-dim">área da agência</p>
+          <div className="flex items-center gap-2">
+            <div>
+              <Logo small />
+              <p className="text-xs text-dim">área da agência</p>
+            </div>
+            <NotificationBell align="left" />
           </div>
           <nav className="-mr-2 flex gap-1 overflow-x-auto md:mr-0 md:mt-8 md:flex-col">
             {items.map((i) => (

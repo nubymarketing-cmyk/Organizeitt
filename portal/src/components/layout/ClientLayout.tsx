@@ -4,10 +4,10 @@ import { useMarkTourDone, useSession, useSignOut } from '../../hooks/useAuth';
 import { useMyAgency } from '../../hooks/useAgency';
 import { useClient } from '../../hooks/useClients';
 import { brandStyle } from '../../lib/brand';
-import { initials } from '../../lib/format';
 import { cx } from '../ui';
 import { AgencyBrand } from './AgencyBrand';
 import { ClientTour } from '../client/ClientTour';
+import { NotificationBell } from '../NotificationBell';
 
 // No máximo 4 itens, com nomes que a clínica entende.
 const TABS = [
@@ -39,22 +39,17 @@ export function ClientLayout() {
       <div className="pointer-events-none absolute -right-24 top-40 h-72 w-72 rounded-full bg-azure/20 blur-[70px]" />
 
       <div className="relative mx-auto max-w-md px-4 pb-28 pt-5">
-        <header className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-              {profile ? initials(profile.full_name) : ''}
-            </div>
-            <div className="leading-tight">
-              <p className="text-xs text-muted">{client.data?.name ?? ' '}</p>
-              <p className="font-semibold text-white">{profile?.full_name}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+        <header className="mb-6 flex items-center justify-between gap-2">
+          <div className="min-w-0 leading-tight">
             <AgencyBrand agency={agency.data} />
-            <button className="min-h-[44px] px-1 text-xs text-muted underline-offset-2 hover:underline" onClick={() => setTourOpen(true)}>
+            <p className="truncate text-xs text-muted">{client.data?.name ?? ' '}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <NotificationBell />
+            <button className="min-h-[44px] px-2 text-xs text-muted underline-offset-2 hover:underline" onClick={() => setTourOpen(true)}>
               Ajuda
             </button>
-            <button className="min-h-[44px] px-1 text-xs text-muted underline-offset-2 hover:underline" onClick={() => signOut.mutate()}>
+            <button className="min-h-[44px] px-2 text-xs text-muted underline-offset-2 hover:underline" onClick={() => signOut.mutate()}>
               Sair
             </button>
           </div>

@@ -75,6 +75,35 @@ As telas nunca acessam dados direto: sempre `página -> hook -> service`.
 
 Planos: Starter até 5 clientes, Pro até 20, Agência sem limite. Agência nova começa com 14 dias de Pro.
 
+## Notificações
+
+Cada aviso nasce no banco (gatilhos em `0006_notificacoes.sql`) e vai para dois lugares:
+
+1. **Sino no portal** (`notifications`): já funciona.
+2. **Fila de envio** (`notification_outbox`): uma linha por canal (e-mail sempre; WhatsApp quando a pessoa
+   cadastra o telefone no sino).
+
+O serviço `supabase/functions/notify-dispatch` lê a fila e envia. Cada canal é um arquivo em
+`channels/`; trocar ou ligar provedor não mexe nas telas. Enquanto o canal não está configurado,
+a mensagem fica como `skipped`.
+
+Para ligar o e-mail (Resend):
+
+```bash
+supabase functions deploy notify-dispatch --no-verify-jwt
+supabase secrets set RESEND_API_KEY=... EMAIL_FROM="Portal <avisos@seudominio.com>" APP_URL=https://seu-portal
+```
+
+E agendar a cada minuto no SQL Editor (precisa da extensão `pg_net`):
+
+```sql
+select cron.schedule('envio-notificacoes', '* * * * *',
+  $$select net.http_post('https://<ref>.supabase.co/functions/v1/notify-dispatch', '{}'::jsonb)$$);
+```
+
+WhatsApp: configure `WHATSAPP_WEBHOOK_URL` e `WHATSAPP_TOKEN` do provedor escolhido e ajuste
+`channels/whatsapp.ts` se o formato for outro. O lembrete de 48h já roda de hora em hora pelo `pg_cron`.
+
 ## Rotas
 
 - `/login` - link mágico (e-mail)

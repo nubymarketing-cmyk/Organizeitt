@@ -134,6 +134,7 @@ export async function listClientUsers(clientId: string): Promise<Profile[]> {
       full_name: inv.full_name,
       email: `${inv.email} · convite pendente`,
       tour_done_at: null,
+      phone: null,
     }),
   );
   return [...(unwrap(profiles) as Profile[]), ...pending];
