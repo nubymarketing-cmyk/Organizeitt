@@ -4,7 +4,7 @@ import { useSession } from '../../hooks/useAuth';
 import { useClient, useClientUsers, useDeactivateClient } from '../../hooks/useClients';
 import { ROLE_LABEL } from '../../lib/format';
 import type { PostStatus } from '../../types/database';
-import { Button, Card, EmptyState, ErrorState, InlineError, Skeleton, SkeletonList, cx } from '../../components/ui';
+import { Button, Card, ConfirmButton, EmptyState, ErrorState, InlineError, Skeleton, SkeletonList, cx } from '../../components/ui';
 import { PostCalendar } from '../../components/PostCalendar';
 import { FolderBrowser } from '../../components/FolderBrowser';
 import { InviteUserModal } from '../../components/InviteUserModal';
@@ -106,17 +106,14 @@ function ClientUsers({ clientId }: { clientId: string }) {
       )}
 
       <div className="border-t border-line pt-4">
-        <Button
+        <ConfirmButton
           variant="danger"
           loading={deactivate.isPending}
-          onClick={() => {
-            if (window.confirm('Desativar este cliente? Os dados ficam guardados, mas ele some da lista.')) {
-              deactivate.mutate(clientId, { onSuccess: () => navigate('/agencia') });
-            }
-          }}
-        >
-          Desativar cliente
-        </Button>
+          label="Desativar cliente"
+          question="Desativar este cliente? Os dados ficam guardados, mas ele some da lista."
+          confirmLabel="Desativar"
+          onConfirm={() => deactivate.mutate(clientId, { onSuccess: () => navigate('/agencia') })}
+        />
         <InlineError error={deactivate.error} />
       </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import { useEffect, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import type { PostStatus } from '../../types/database';
 import { STATUS_LABEL, STATUS_STYLE } from '../../lib/format';
 import { useSignedUrl } from '../../hooks/useSignedUrl';
@@ -193,5 +193,53 @@ export function MediaView({ path, className }: { path: string; className?: strin
     <video src={url.data} className={cx('object-cover', className)} controls playsInline />
   ) : (
     <img src={url.data} alt="" className={cx('object-cover', className)} />
+  );
+}
+
+/** Ação com confirmação na própria tela (sem caixa de diálogo do navegador). */
+export function ConfirmButton({
+  label,
+  question,
+  confirmLabel,
+  onConfirm,
+  variant = 'secondary',
+  loading,
+  disabled,
+}: {
+  label: string;
+  question: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  variant?: Variant;
+  loading?: boolean;
+  disabled?: boolean;
+}) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) {
+    return (
+      <Button variant={variant} loading={loading} disabled={disabled} onClick={() => setAsking(true)}>
+        {label}
+      </Button>
+    );
+  }
+  return (
+    <div className="w-full space-y-2 rounded-xl border border-line bg-white/[.04] p-3">
+      <p className="text-sm text-white">{question}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" onClick={() => setAsking(false)}>
+          Cancelar
+        </Button>
+        <Button
+          variant={variant === 'danger' ? 'danger' : 'primary'}
+          loading={loading}
+          onClick={() => {
+            setAsking(false);
+            onConfirm();
+          }}
+        >
+          {confirmLabel}
+        </Button>
+      </div>
+    </div>
   );
 }

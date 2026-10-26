@@ -13,7 +13,7 @@ import {
 } from '../../hooks/usePosts';
 import { useClient } from '../../hooks/useClients';
 import { FORMAT_LABEL, NETWORK_LABEL } from '../../lib/format';
-import { Button, Card, ErrorState, Field, InlineError, Input, MediaView, Select, Skeleton, StatusBadge, Textarea } from '../../components/ui';
+import { Button, Card, ConfirmButton, ErrorState, Field, InlineError, Input, MediaView, Select, Skeleton, StatusBadge, Textarea } from '../../components/ui';
 import { CommentThread, MediaCarousel, VersionHistory } from '../../components/PostParts';
 
 interface FormState {
@@ -261,15 +261,15 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
             </Button>
           ) : null}
           {p && status !== 'in_creation' ? (
-            <Button
+            <ConfirmButton
               variant="ghost"
               disabled={busy}
-              onClick={() => {
-                if (window.confirm('Voltar este post para criação? O cliente deixa de vê-lo até ser reenviado.')) back.mutate(p.id);
-              }}
-            >
-              Voltar para criação
-            </Button>
+              loading={back.isPending}
+              label="Voltar para criação"
+              question="Voltar este post para criação? O cliente deixa de vê-lo até ser reenviado."
+              confirmLabel="Voltar para criação"
+              onConfirm={() => back.mutate(p.id)}
+            />
           ) : null}
         </div>
       </Card>

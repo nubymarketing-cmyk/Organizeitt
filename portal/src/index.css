@@ -4,6 +4,7 @@
 
 html,
 body {
+  color-scheme: dark;
   background: #0c0b1d;
   color: #fff;
   font-family: Manrope, system-ui, sans-serif;
