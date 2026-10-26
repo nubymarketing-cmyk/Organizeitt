@@ -5,12 +5,14 @@ import { USE_SUPABASE } from '../config';
 import * as mock from './mock';
 import * as sb from './supabase';
 
-export type { CommentWithAuthor, PostDetail, PostFilters, PostInput } from './types';
+export type { AgencyPostFilters, CommentWithAuthor, PostDetail, PostFilters, PostInput, PostWithClient } from './types';
 
 const impl = USE_SUPABASE ? sb : mock;
 
 export const {
   listPosts,
+  listAgencyPosts,
+  reschedulePost,
   getPost,
   createPost,
   updatePost,

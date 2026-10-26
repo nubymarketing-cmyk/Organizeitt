@@ -6,7 +6,7 @@ import type { Post, PostStatus } from '../../types/database';
 import { AppError, canSeeRow, isStaff, profileName, requireClientUser, requireProfile, requireStaff, assertClientAccess } from '../mock/access';
 import { db, delay, nowIso, uid } from '../mock/db';
 import { uploadToStorage } from '../storage';
-import type { PostDetail, PostFilters, PostInput } from './types';
+import type { AgencyPostFilters, PostDetail, PostFilters, PostInput, PostWithClient } from './types';
 
 function visible(post: Post): boolean {
   const p = requireProfile();
@@ -23,6 +23,7 @@ function findPost(id: string): Post {
 }
 
 function touch(post: Post, status?: PostStatus) {
+  if (status && status !== post.status) post.status_changed_at = nowIso();
   if (status) post.status = status;
   post.updated_at = nowIso();
 }
@@ -35,6 +36,35 @@ export async function listPosts(filters: PostFilters = {}): Promise<Post[]> {
     .filter((x) => !filters.network || filters.network === 'all' || x.network === filters.network)
     .sort((a, b) => (a.scheduled_at ?? '').localeCompare(b.scheduled_at ?? ''));
   return delay(rows.map((x) => ({ ...x })));
+}
+
+export async function listAgencyPosts(filters: AgencyPostFilters = {}): Promise<PostWithClient[]> {
+  const now = nowIso();
+  const rows = db.posts
+    .filter(visible)
+    .filter((x) => db.clients.find((c) => c.id === x.client_id)?.active)
+    .filter((x) => !filters.from || (x.scheduled_at ?? '') >= filters.from)
+    .filter((x) => !filters.to || (!!x.scheduled_at && x.scheduled_at < filters.to))
+    .filter((x) => !filters.clientId || x.client_id === filters.clientId)
+    .filter((x) => !filters.status || filters.status === 'all' || x.status === filters.status)
+    .filter((x) => !filters.network || filters.network === 'all' || x.network === filters.network)
+    .filter((x) => !filters.assigneeId || (filters.assigneeId === 'none' ? !x.assignee_id : x.assignee_id === filters.assigneeId))
+    .filter((x) => !filters.overdue || (!!x.scheduled_at && x.scheduled_at < now && x.status !== 'published'))
+    .sort((a, b) => (a.scheduled_at ?? '').localeCompare(b.scheduled_at ?? ''));
+  return delay(
+    rows.map((x) => {
+      const c = db.clients.find((cl) => cl.id === x.client_id);
+      return { ...x, client_name: c?.name ?? 'Cliente', client_color: c?.color ?? null };
+    }),
+  );
+}
+
+export async function reschedulePost(id: string, scheduledAt: string): Promise<Post> {
+  requireStaff();
+  const post = findPost(id);
+  post.scheduled_at = scheduledAt;
+  touch(post);
+  return delay({ ...post });
 }
 
 export async function getPost(id: string): Promise<PostDetail> {
@@ -72,6 +102,7 @@ export async function createPost(input: PostInput): Promise<Post> {
     current_version: 1,
     created_by: p.id,
     assignee_id: null,
+    status_changed_at: ts,
   };
   db.posts.push(post);
   db.post_versions.push({

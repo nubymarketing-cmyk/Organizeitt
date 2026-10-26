@@ -146,3 +146,21 @@ export const COMMENT_KIND_LABEL: Record<CommentKind, string> = {
   approval: 'aprovou',
   change_request: 'pediu ajuste',
 };
+
+/** "há 5 min", "há 3 h", "há 2 dias". */
+export function timeAgo(iso: string | null): string {
+  if (!iso) return '';
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 1) return 'agora';
+  if (min < 60) return `há ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `há ${h} h`;
+  const d = Math.round(h / 24);
+  return `há ${d} dia${d === 1 ? '' : 's'}`;
+}
+
+/** Data de calendário "YYYY-MM-DD" sem mudar de dia pelo fuso. */
+export function formatDay(day: string): string {
+  const [y, m, d] = day.slice(0, 10).split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
+}

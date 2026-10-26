@@ -6,6 +6,8 @@ import {
   createPostVersion,
   getPost,
   listPosts,
+  listAgencyPosts,
+  reschedulePost,
   markPostPublished,
   requestPostChanges,
   returnPostToCreation,
@@ -15,6 +17,7 @@ import {
   submitPostForApproval,
   updatePost,
   uploadPostMedia,
+  type AgencyPostFilters,
   type PostFilters,
   type PostInput,
 } from '../services/posts';
@@ -35,7 +38,36 @@ function useInvalidatePosts() {
     qc.invalidateQueries({ queryKey: ['posts'] });
     qc.invalidateQueries({ queryKey: ['post'] });
     qc.invalidateQueries({ queryKey: ['clients'] });
+    qc.invalidateQueries({ queryKey: ['agency-posts'] });
+    qc.invalidateQueries({ queryKey: ['overview'] });
+    qc.invalidateQueries({ queryKey: ['activity'] });
   };
+}
+
+/** Posts de todos os clientes (visão geral, lista geral e calendário geral). */
+export function useAgencyPosts(filters: AgencyPostFilters = {}, enabled = true) {
+  return useQuery({ queryKey: ['agency-posts', filters], queryFn: () => listAgencyPosts(filters), enabled });
+}
+
+/** Muda a data já na tela e desfaz se o banco recusar. */
+export function useReschedulePost() {
+  const qc = useQueryClient();
+  const invalidate = useInvalidatePosts();
+  return useMutation({
+    mutationFn: ({ id, scheduledAt }: { id: string; scheduledAt: string }) => reschedulePost(id, scheduledAt),
+    onMutate: async ({ id, scheduledAt }) => {
+      await qc.cancelQueries({ queryKey: ['agency-posts'] });
+      const previous = qc.getQueriesData<Array<{ id: string; scheduled_at: string | null }>>({ queryKey: ['agency-posts'] });
+      for (const [key, data] of previous) {
+        if (data) qc.setQueryData(key, data.map((p) => (p.id === id ? { ...p, scheduled_at: scheduledAt } : p)));
+      }
+      return { previous };
+    },
+    onError: (_e, _v, ctx) => {
+      for (const [key, data] of ctx?.previous ?? []) qc.setQueryData(key, data);
+    },
+    onSettled: invalidate,
+  });
 }
 
 export function useCreatePost() {

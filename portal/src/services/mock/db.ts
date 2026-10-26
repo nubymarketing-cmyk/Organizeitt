@@ -48,9 +48,9 @@ const agencies: Agency[] = [
 ];
 
 const clients: Client[] = [
-  { id: ANA, created_at: at(-180), agency_id: AG, name: 'Odonto Ana', specialty: 'Odontologia', contact_email: 'contato@odontoana.com.br', active: true, color: null },
-  { id: BEM, created_at: at(-120), agency_id: AG, name: 'Espaço Bem-Viver', specialty: 'Psicologia', contact_email: 'ola@bemviver.com.br', active: true, color: null },
-  { id: MOV, created_at: at(-90), agency_id: AG, name: 'Clínica Movere', specialty: 'Fisioterapia', contact_email: 'adm@movere.com.br', active: true, color: null },
+  { id: ANA, created_at: at(-180), agency_id: AG, name: 'Odonto Ana', specialty: 'Odontologia', contact_email: 'contato@odontoana.com.br', active: true, color: null, monthly_fee: null, billing_day: null },
+  { id: BEM, created_at: at(-120), agency_id: AG, name: 'Espaço Bem-Viver', specialty: 'Psicologia', contact_email: 'ola@bemviver.com.br', active: true, color: null, monthly_fee: null, billing_day: null },
+  { id: MOV, created_at: at(-90), agency_id: AG, name: 'Clínica Movere', specialty: 'Fisioterapia', contact_email: 'adm@movere.com.br', active: true, color: null, monthly_fee: null, billing_day: null },
 ];
 
 const profiles: Profile[] = [
@@ -109,6 +109,7 @@ for (const s of seedPosts) {
     current_version: s.versions,
     created_by: MEMBER,
     assignee_id: MEMBER,
+    status_changed_at: created,
   });
   for (let v = 1; v <= s.versions; v++) {
     post_versions.push({

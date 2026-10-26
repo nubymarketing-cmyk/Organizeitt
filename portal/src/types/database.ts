@@ -37,6 +37,9 @@ export interface Client {
   active: boolean;
   /** Cor do cliente no calendário geral. */
   color: string | null;
+  /** Mensalidade cobrada da clínica e dia de vencimento (1 a 28). */
+  monthly_fee: number | null;
+  billing_day: number | null;
 }
 
 export interface Profile {
@@ -66,6 +69,7 @@ export interface Post {
   created_by: string;
   /** Responsável da equipe pelo post. */
   assignee_id: string | null;
+  status_changed_at: string;
 }
 
 export interface PostVersion {
@@ -122,6 +126,40 @@ export interface FileRecord {
   mime_type: string | null;
   size_bytes: number | null;
   uploaded_by: string;
+}
+
+export type ActivityAction =
+  | 'post_submitted'
+  | 'post_version'
+  | 'post_approved'
+  | 'changes_requested'
+  | 'post_published'
+  | 'post_returned'
+  | 'comment'
+  | 'report_published'
+  | 'file_uploaded';
+
+export interface ActivityEntry {
+  id: string;
+  created_at: string;
+  agency_id: string;
+  client_id: string;
+  post_id: string | null;
+  actor_id: string | null;
+  action: ActivityAction;
+  subject: string | null;
+}
+
+export interface ClientCharge {
+  id: string;
+  created_at: string;
+  agency_id: string;
+  client_id: string;
+  /** YYYY-MM-DD */
+  due_date: string;
+  amount: number;
+  paid_at: string | null;
+  notes: string | null;
 }
 
 export type StorageBucket = 'post-media' | 'client-files' | 'report-pdfs' | 'agency-assets';

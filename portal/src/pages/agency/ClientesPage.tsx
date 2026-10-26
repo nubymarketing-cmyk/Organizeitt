@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '../../hooks/useAuth';
 import { useClients, useCreateClient } from '../../hooks/useClients';
-import { initials } from '../../lib/format';
-import { Button, Card, EmptyState, ErrorState, Field, InlineError, Input, Modal, PageHeader, SkeletonList } from '../../components/ui';
+import { Button, Card, EmptyState, ErrorState, Field, InlineError, Input, Modal, PageHeader, SkeletonList, cx } from '../../components/ui';
 import { InviteUserModal } from '../../components/InviteUserModal';
+import { ClientAvatar } from '../../components/AgencyParts';
+import type { ClientWithCounts, PaymentStatus } from '../../services/clients';
 
 export function ClientesPage() {
   const { data: profile } = useSession();
@@ -55,30 +56,7 @@ export function ClientesPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((c) => (
-            <Link key={c.id} to={`/agencia/clientes/${c.id}`}>
-              <Card className="h-full hover:border-violet/40">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
-                    {initials(c.name)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-white">{c.name}</p>
-                    <p className="text-xs text-muted">{c.specialty ?? 'sem especialidade'}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
-                  <span className={c.awaiting_count ? 'rounded-full bg-warn/15 px-2.5 py-1 text-warn' : 'rounded-full bg-white/5 px-2.5 py-1 text-dim'}>
-                    {c.awaiting_count} aguardando
-                  </span>
-                  {c.changes_count ? (
-                    <span className="rounded-full bg-bad/15 px-2.5 py-1 text-bad">{c.changes_count} com ajuste</span>
-                  ) : null}
-                  <span className="rounded-full bg-white/5 px-2.5 py-1 text-dim">
-                    {c.users_count} usuário{c.users_count === 1 ? '' : 's'}
-                  </span>
-                </div>
-              </Card>
-            </Link>
+            <ClientCard key={c.id} client={c} showPayment={isAdmin} />
           ))}
         </div>
       )}
@@ -121,5 +99,53 @@ function NewClientModal({ open, onClose }: { open: boolean; onClose: () => void 
         </Button>
       </form>
     </Modal>
+  );
+}
+
+const PAYMENT: Record<PaymentStatus, { label: string; cls: string }> = {
+  none: { label: 'sem cobrança', cls: 'bg-white/5 text-dim' },
+  open: { label: 'mensalidade a vencer', cls: 'bg-white/5 text-muted' },
+  paid: { label: 'pagamento em dia', cls: 'bg-ok/15 text-ok' },
+  overdue: { label: 'mensalidade vencida', cls: 'bg-bad/15 text-bad' },
+};
+
+function ClientCard({ client: c, showPayment }: { client: ClientWithCounts; showPayment: boolean }) {
+  const late = c.overdue_count > 0;
+  const progress = c.month_planned ? Math.round((c.month_published / c.month_planned) * 100) : 0;
+  return (
+    <Link to={`/agencia/clientes/${c.id}`}>
+      <Card className="h-full hover:border-violet/40">
+        <div className="flex items-center gap-3">
+          <ClientAvatar name={c.name} color={c.color} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-white">{c.name}</p>
+            <p className="text-xs text-muted">{c.specialty ?? 'sem especialidade'}</p>
+          </div>
+          <span className={cx('rounded-full px-2.5 py-1 text-xs font-bold', late ? 'bg-bad/15 text-bad' : 'bg-ok/15 text-ok')}>
+            {late ? 'atrasado' : 'em dia'}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex justify-between text-xs">
+            <span className="text-muted">Posts do mês</span>
+            <span className="font-semibold text-white">
+              {c.month_published} publicado{c.month_published === 1 ? '' : 's'} de {c.month_planned}
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+          {c.awaiting_count ? <span className="rounded-full bg-warn/15 px-2.5 py-1 text-warn">{c.awaiting_count} aguardando</span> : null}
+          {c.changes_count ? <span className="rounded-full bg-bad/15 px-2.5 py-1 text-bad">{c.changes_count} com ajuste</span> : null}
+          {late ? <span className="rounded-full bg-bad/15 px-2.5 py-1 text-bad">{c.overdue_count} atrasado{c.overdue_count === 1 ? '' : 's'}</span> : null}
+          {!c.awaiting_count && !c.changes_count && !late ? <span className="rounded-full bg-white/5 px-2.5 py-1 text-dim">sem pendências</span> : null}
+          {showPayment ? <span className={cx('rounded-full px-2.5 py-1', PAYMENT[c.payment_status].cls)}>{PAYMENT[c.payment_status].label}</span> : null}
+        </div>
+      </Card>
+    </Link>
   );
 }

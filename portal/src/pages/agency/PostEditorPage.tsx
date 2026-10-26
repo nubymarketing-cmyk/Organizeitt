@@ -53,7 +53,7 @@ export function PostEditorPage() {
   if (id && (post.isError || !post.data)) {
     return (
       <div className="space-y-4">
-        <Link to="/agencia" className="text-sm text-lilac">‹ Clientes</Link>
+        <Link to="/agencia/clientes" className="text-sm text-lilac">‹ Clientes</Link>
         <ErrorState error={post.error} onRetry={() => post.refetch()} />
       </div>
     );

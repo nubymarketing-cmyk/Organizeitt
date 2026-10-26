@@ -13,6 +13,10 @@ import { ClientesPage } from './pages/agency/ClientesPage';
 import { ClienteDetalhePage } from './pages/agency/ClienteDetalhePage';
 import { PostEditorPage } from './pages/agency/PostEditorPage';
 import { EquipePage } from './pages/agency/EquipePage';
+import { VisaoGeralPage } from './pages/agency/VisaoGeralPage';
+import { PostsGeralPage } from './pages/agency/PostsGeralPage';
+import { CalendarioGeralPage } from './pages/agency/CalendarioGeralPage';
+import { RelatoriosPendentesPage } from './pages/agency/RelatoriosPendentesPage';
 import { ConfiguracoesPage } from './pages/agency/ConfiguracoesPage';
 import { PlataformaPage } from './pages/platform/PlataformaPage';
 
@@ -36,7 +40,11 @@ export function App() {
       <Route element={<RequireAuth area="staff" />}>
         <Route element={<AgencyLayout />}>
           <Route path="/agencia">
-            <Route index element={<ClientesPage />} />
+            <Route index element={<VisaoGeralPage />} />
+            <Route path="clientes" element={<ClientesPage />} />
+            <Route path="posts" element={<PostsGeralPage />} />
+            <Route path="calendario" element={<CalendarioGeralPage />} />
+            <Route path="relatorios-pendentes" element={<RelatoriosPendentesPage />} />
             <Route path="clientes/:clientId" element={<ClienteDetalhePage />} />
             <Route path="clientes/:clientId/posts/novo" element={<PostEditorPage />} />
             <Route path="posts/:id" element={<PostEditorPage />} />

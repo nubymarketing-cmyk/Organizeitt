@@ -5,7 +5,7 @@ import { isStaffRole } from '../../lib/roles';
 import { AppError } from '../errors';
 import { parseDemoMedia, uploadToStorage } from '../storage';
 import { clientAgencyId, supabase, unwrap } from '../supabase';
-import type { CommentWithAuthor, PostDetail, PostFilters, PostInput } from './types';
+import type { AgencyPostFilters, CommentWithAuthor, PostDetail, PostFilters, PostInput, PostWithClient } from './types';
 
 export async function listPosts(filters: PostFilters = {}): Promise<Post[]> {
   let q = supabase().from('posts').select('*').order('scheduled_at', { ascending: true, nullsFirst: true });
@@ -13,6 +13,35 @@ export async function listPosts(filters: PostFilters = {}): Promise<Post[]> {
   if (filters.status && filters.status !== 'all') q = q.eq('status', filters.status);
   if (filters.network && filters.network !== 'all') q = q.eq('network', filters.network);
   return unwrap(await q) as Post[];
+}
+
+type ClientJoin = Post & { client: { name: string; color: string | null } | null };
+
+/** Posts de todos os clientes que a pessoa enxerga (o RLS filtra), com nome e cor do cliente. */
+export async function listAgencyPosts(filters: AgencyPostFilters = {}): Promise<PostWithClient[]> {
+  let q = supabase()
+    .from('posts')
+    .select('*, client:clients!inner(name, color, active)')
+    .eq('client.active', true)
+    .order('scheduled_at', { ascending: true, nullsFirst: false });
+  if (filters.from) q = q.gte('scheduled_at', filters.from);
+  if (filters.to) q = q.lt('scheduled_at', filters.to);
+  if (filters.clientId) q = q.eq('client_id', filters.clientId);
+  if (filters.status && filters.status !== 'all') q = q.eq('status', filters.status);
+  if (filters.network && filters.network !== 'all') q = q.eq('network', filters.network);
+  if (filters.assigneeId === 'none') q = q.is('assignee_id', null);
+  else if (filters.assigneeId) q = q.eq('assignee_id', filters.assigneeId);
+  if (filters.overdue) q = q.lt('scheduled_at', new Date().toISOString()).neq('status', 'published');
+  return (unwrap(await q) as ClientJoin[]).map(({ client, ...p }) => ({
+    ...p,
+    client_name: client?.name ?? 'Cliente',
+    client_color: client?.color ?? null,
+  }));
+}
+
+/** Nova data do post, mantendo o resto (arrastar no calendário geral). */
+export async function reschedulePost(id: string, scheduledAt: string): Promise<Post> {
+  return unwrap(await rpcPost('reschedule_post', { p_post: id, p_scheduled_at: scheduledAt }));
 }
 
 type CommentRow = PostComment & { author: { full_name: string; role: UserRole } | null };

@@ -1,6 +1,6 @@
 // Clientes da agência e convite de usuários no modo demonstração.
 
-import type { Client, Profile } from '../../types/database';
+import type { Client, ClientCharge, Profile } from '../../types/database';
 import { AppError, assertClientAccess, requireProfile, requireStaff } from '../mock/access';
 import { db, delay, nowIso, uid } from '../mock/db';
 import type { ClientWithCounts, InviteInput } from './types';
@@ -14,9 +14,25 @@ export async function listClients(): Promise<ClientWithCounts[]> {
       awaiting_count: db.posts.filter((x) => x.client_id === c.id && x.status === 'awaiting_approval').length,
       changes_count: db.posts.filter((x) => x.client_id === c.id && x.status === 'changes_requested').length,
       users_count: db.profiles.filter((x) => x.client_id === c.id).length,
+      ...monthNumbers(c.id),
     }))
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   return delay(rows);
+}
+
+/** Números do mês para o card do cliente (mesma regra de clients_summary no banco). */
+function monthNumbers(clientId: string) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+  const posts = db.posts.filter((x) => x.client_id === clientId && x.scheduled_at);
+  const inMonth = posts.filter((x) => x.scheduled_at! >= start && x.scheduled_at! < end);
+  return {
+    month_published: inMonth.filter((x) => x.status === 'published').length,
+    month_planned: inMonth.length,
+    overdue_count: posts.filter((x) => x.scheduled_at! < now.toISOString() && x.status !== 'published').length,
+    payment_status: 'none' as const,
+  };
 }
 
 export async function getClient(id: string): Promise<Client> {
@@ -36,6 +52,8 @@ export async function createClient(input: { name: string; specialty: string; con
     contact_email: input.contact_email.trim() || null,
     active: true,
     color: null,
+    monthly_fee: null,
+    billing_day: null,
   };
   db.clients.push(client);
   return delay({ ...client });
@@ -77,4 +95,26 @@ export async function inviteUser(input: InviteInput): Promise<void> {
     tour_done_at: null,
   });
   await delay(null, 500);
+}
+
+const ONLY_SUPABASE = 'Disponível só com o Supabase ligado.';
+
+export async function updateClient(): Promise<Client> {
+  throw new AppError(ONLY_SUPABASE);
+}
+
+export async function listCharges(): Promise<ClientCharge[]> {
+  return delay([]);
+}
+
+export async function createCharge(): Promise<ClientCharge> {
+  throw new AppError(ONLY_SUPABASE);
+}
+
+export async function setChargePaid(): Promise<void> {
+  throw new AppError(ONLY_SUPABASE);
+}
+
+export async function deleteCharge(): Promise<void> {
+  throw new AppError(ONLY_SUPABASE);
 }

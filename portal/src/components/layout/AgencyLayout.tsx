@@ -11,7 +11,10 @@ export function AgencyLayout() {
   const signOut = useSignOut();
   const isAdmin = profile?.role === 'agency_admin';
   const items = [
-    { to: '/agencia', label: 'Clientes', end: true, show: true },
+    { to: '/agencia', label: 'Visão geral', end: true, show: true },
+    { to: '/agencia/clientes', label: 'Clientes', show: true },
+    { to: '/agencia/calendario', label: 'Calendário', show: true },
+    { to: '/agencia/posts', label: 'Posts', end: true, show: true },
     { to: '/agencia/equipe', label: 'Equipe', show: isAdmin },
     { to: '/agencia/configuracoes', label: 'Configurações', show: isAdmin },
     { to: '/plataforma', label: 'Plataforma', show: !!platform.data },
