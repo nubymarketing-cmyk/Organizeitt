@@ -1,7 +1,16 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type { Profile } from '../types/database';
-import { getSessionProfile, markTourDone, onAuthChange, openMagicLinkDemo, sendMagicLink, signOut } from '../services/auth';
+import {
+  getSessionProfile,
+  markTourDone,
+  onAuthChange,
+  openMagicLinkDemo,
+  sendMagicLink,
+  signInWithPassword,
+  signOut,
+  signUpAgency,
+} from '../services/auth';
 
 export function useSession() {
   return useQuery({ queryKey: ['session'], queryFn: getSessionProfile, staleTime: Infinity });
@@ -27,6 +36,23 @@ export function useMarkTourDone() {
     mutationFn: markTourDone,
     onSuccess: () =>
       qc.setQueryData<Profile | null>(['session'], (p) => (p ? { ...p, tour_done_at: p.tour_done_at ?? new Date().toISOString() } : p)),
+  });
+}
+
+/** Depois de entrar com senha ou se cadastrar, a sessão é recarregada pelo aviso do Supabase. */
+export function usePasswordSignIn() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) => signInWithPassword(email, password),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
+  });
+}
+
+export function useSignUpAgency() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, email, password }: { name: string; email: string; password: string }) => signUpAgency(name, email, password),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
   });
 }
 

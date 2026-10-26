@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { useOpenMagicLinkDemo, useSendMagicLink, useSession } from '../../hooks/useAuth';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useOpenMagicLinkDemo, usePasswordSignIn, useSendMagicLink, useSession } from '../../hooks/useAuth';
 import { ROLE_LABEL } from '../../lib/format';
 import { isStaffRole } from '../../lib/roles';
 import { IS_DEMO, listDemoUsers, resetDemo } from '../../services/auth';
@@ -15,12 +15,17 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [linkError] = useState(readLinkError);
+  // Clínicas entram pelo link; a equipe da agência pode usar senha.
+  const [mode, setMode] = useState<'link' | 'senha'>('link');
+  const [password, setPassword] = useState('');
+  const passwordSignIn = usePasswordSignIn();
 
   if (session.data) return <Navigate to={isStaffRole(session.data.role) ? '/agencia' : '/app'} replace />;
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    send.mutate(email, { onSuccess: () => setSentTo(email.trim().toLowerCase()) });
+    if (mode === 'senha') passwordSignIn.mutate({ email, password });
+    else send.mutate(email, { onSuccess: () => setSentTo(email.trim().toLowerCase()) });
   };
 
   const enter = (address: string) =>
@@ -69,13 +74,43 @@ export function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Button type="submit" className="w-full py-3" loading={send.isPending}>
-              RECEBER LINK DE ACESSO
+            {mode === 'senha' ? (
+              <Input
+                type="password"
+                autoComplete="current-password"
+                placeholder="Sua senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            ) : null}
+            <Button type="submit" className="w-full py-3" loading={send.isPending || passwordSignIn.isPending}>
+              {mode === 'senha' ? 'Entrar' : 'Receber link de acesso'}
             </Button>
-            <InlineError error={send.error ?? linkError} />
-            <p className="text-center text-xs text-dim">Sem senha. O acesso é só por convite da agência.</p>
+            <InlineError error={(mode === 'senha' ? passwordSignIn.error : send.error) ?? linkError} />
+            {!IS_DEMO ? (
+              <button
+                type="button"
+                className="block min-h-[44px] w-full text-center text-sm text-lilac"
+                onClick={() => setMode(mode === 'senha' ? 'link' : 'senha')}
+              >
+                {mode === 'senha' ? 'Entrar sem senha, com link no e-mail' : 'Sou da agência, entrar com senha'}
+              </button>
+            ) : null}
+            <p className="text-center text-xs text-dim">
+              {mode === 'senha' ? 'Esqueceu a senha? Use o link no e-mail.' : 'Clínicas entram sem senha, pelo convite da agência.'}
+            </p>
           </form>
         )}
+
+        {!IS_DEMO ? (
+          <p className="mt-6 text-center text-sm text-muted">
+            Tem uma agência?{' '}
+            <Link to="/cadastro" className="text-lilac">
+              Crie sua conta grátis
+            </Link>
+          </p>
+        ) : null}
 
         {IS_DEMO ? (
           <div className="mt-10 rounded-2xl border border-dashed border-line p-4">

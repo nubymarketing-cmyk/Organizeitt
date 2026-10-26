@@ -30,6 +30,35 @@ export async function markTourDone(): Promise<void> {
   unwrap(await supabase().rpc('mark_tour_done'));
 }
 
+/** Entrada com senha (equipe da agência). As clínicas entram pelo link no e-mail. */
+export async function signInWithPassword(email: string, password: string): Promise<void> {
+  const { error } = await supabase().auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+  if (error?.status === 400) throw new AppError('E-mail ou senha incorretos. Sem senha? Use o link por e-mail.');
+  if (error) throw new AppError(error.message === 'Failed to fetch' ? 'Sem conexão com o servidor. Tente de novo.' : error.message);
+}
+
+export interface SignUpResult {
+  /** false: o Supabase pede confirmação por e-mail antes do primeiro acesso. */
+  signedIn: boolean;
+}
+
+/** Cadastro de agência nova: o banco cria a agência (teste de 14 dias no Pro) e o admin. */
+export async function signUpAgency(agencyName: string, email: string, password: string): Promise<SignUpResult> {
+  const name = agencyName.trim();
+  const clean = email.trim().toLowerCase();
+  if (name.length < 2) throw new AppError('Informe o nome da agência.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) throw new AppError('Digite um e-mail válido.');
+  if (password.length < 8) throw new AppError('A senha precisa ter pelo menos 8 caracteres.');
+  const { data, error } = await supabase().auth.signUp({
+    email: clean,
+    password,
+    options: { data: { signup_agency_name: name }, emailRedirectTo: `${appUrl()}/login` },
+  });
+  if (error?.status === 429) throw new AppError('Muitos cadastros seguidos. Espere alguns minutos e tente de novo.');
+  if (error) throw new AppError(error.message.includes('already') ? 'Este e-mail já tem conta. Entre pela tela de login.' : error.message);
+  return { signedIn: !!data.session };
+}
+
 export async function signOut(): Promise<void> {
   await supabase().auth.signOut();
 }

@@ -3,7 +3,7 @@ import { useSession } from '../../hooks/useAuth';
 import { useMyAgency, useUpdateBranding } from '../../hooks/useAgency';
 import { useClients } from '../../hooks/useClients';
 import { brandStyle } from '../../lib/brand';
-import { AGENCY_STATUS_LABEL, PLAN_CLIENT_LIMIT, PLAN_LABEL, formatDate } from '../../lib/format';
+import { AGENCY_STATUS_LABEL, PLAN_CLIENT_LIMIT, PLAN_LABEL, effectivePlan, formatDate } from '../../lib/format';
 import type { Agency } from '../../types/database';
 import { Button, Card, EmptyState, ErrorState, Field, InlineError, Input, PageHeader, Skeleton } from '../../components/ui';
 import { AgencyBrand } from '../../components/layout/AgencyBrand';
@@ -29,7 +29,8 @@ export function ConfiguracoesPage() {
   );
 }
 
-function BrandingForm({ agency }: { agency: Agency }) {
+/** Marca da agência. No onboarding, onSaved avança para o próximo passo. */
+export function BrandingForm({ agency, onSaved, saveLabel = 'Salvar marca' }: { agency: Agency; onSaved?: () => void; saveLabel?: string }) {
   const save = useUpdateBranding();
   const fileInput = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(agency.name);
@@ -134,12 +135,13 @@ function BrandingForm({ agency }: { agency: Agency }) {
                 setLogo(null);
                 setRemoveLogo(false);
                 setSaved(true);
+                onSaved?.();
               },
             },
           )
         }
       >
-        Salvar marca
+        {saveLabel}
       </Button>
     </Card>
   );
@@ -147,7 +149,9 @@ function BrandingForm({ agency }: { agency: Agency }) {
 
 function PlanCard({ agency }: { agency: Agency }) {
   const clients = useClients();
-  const limit = PLAN_CLIENT_LIMIT[agency.plan];
+  const plan = effectivePlan(agency);
+  const trialOver = plan !== agency.plan;
+  const limit = PLAN_CLIENT_LIMIT[plan];
   const used = clients.data?.length ?? 0;
 
   return (
@@ -157,7 +161,9 @@ function PlanCard({ agency }: { agency: Agency }) {
         <span className="rounded-full bg-brand px-3 py-1 text-sm font-bold text-white">{PLAN_LABEL[agency.plan]}</span>
         <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-muted">{AGENCY_STATUS_LABEL[agency.status]}</span>
       </div>
-      {agency.status === 'trial' && agency.trial_ends_at ? (
+      {trialOver ? (
+        <p className="text-sm text-warn">O teste acabou. Até o pagamento ser ligado, vale o limite do plano Starter.</p>
+      ) : agency.status === 'trial' && agency.trial_ends_at ? (
         <p className="text-sm text-muted">Período de teste até {formatDate(agency.trial_ends_at)}.</p>
       ) : null}
       <p className="text-sm text-white">

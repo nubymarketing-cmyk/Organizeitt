@@ -4,6 +4,8 @@ import { ClientLayout } from './components/layout/ClientLayout';
 import { HomeRedirect, RequireAuth } from './components/layout/RequireAuth';
 import { useAuthListener } from './hooks/useAuth';
 import { LoginPage } from './pages/auth/LoginPage';
+import { CadastroPage } from './pages/auth/CadastroPage';
+import { BoasVindasPage } from './pages/agency/BoasVindasPage';
 import { InicioPage } from './pages/client/InicioPage';
 import { PostDetalhePage } from './pages/client/PostDetalhePage';
 import { MeusPostsPage } from './pages/client/MeusPostsPage';
@@ -27,6 +29,7 @@ export function App() {
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/cadastro" element={<CadastroPage />} />
 
       <Route element={<RequireAuth area="client" />}>
         <Route path="/app" element={<ClientLayout />}>
@@ -56,6 +59,7 @@ export function App() {
             <Route path="posts/:id" element={<PostEditorPage />} />
             <Route path="equipe" element={<EquipePage />} />
             <Route path="configuracoes" element={<ConfiguracoesPage />} />
+            <Route path="boas-vindas" element={<BoasVindasPage />} />
           </Route>
           <Route path="/plataforma" element={<PlataformaPage />} />
         </Route>

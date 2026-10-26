@@ -30,6 +30,10 @@ export async function setMemberClients(): Promise<void> {
   throw new AppError(ONLY_SUPABASE);
 }
 
+export async function completeOnboarding(): Promise<void> {
+  await delay(null);
+}
+
 export async function isPlatformAdmin(): Promise<boolean> {
   return false;
 }

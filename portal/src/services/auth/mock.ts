@@ -34,6 +34,16 @@ export async function markTourDone(): Promise<void> {
   await delay(null, 50);
 }
 
+const ONLY_SUPABASE = 'Disponível só com o Supabase ligado.';
+
+export async function signInWithPassword(): Promise<void> {
+  throw new AppError(ONLY_SUPABASE);
+}
+
+export async function signUpAgency(): Promise<{ signedIn: boolean }> {
+  throw new AppError(ONLY_SUPABASE);
+}
+
 export async function signOut(): Promise<void> {
   setCurrentUser(null);
   await delay(null, 50);

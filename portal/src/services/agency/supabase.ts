@@ -67,6 +67,11 @@ export async function setMemberClients(profileId: string, clientIds: string[]): 
   unwrap(await supabase().rpc('set_member_clients', { p_profile: profileId, p_clients: clientIds }));
 }
 
+/** Onboarding concluído ou pulado. */
+export async function completeOnboarding(): Promise<void> {
+  unwrap(await supabase().rpc('complete_onboarding'));
+}
+
 export async function isPlatformAdmin(): Promise<boolean> {
   return !!unwrap(await supabase().rpc('is_platform_admin'));
 }

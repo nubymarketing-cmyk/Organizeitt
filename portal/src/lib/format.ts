@@ -1,4 +1,4 @@
-import type { AgencyPlan, AgencyStatus, CommentKind, FileFolder, Network, PostFormat, PostStatus, UserRole } from '../types/database';
+import type { Agency, AgencyPlan, AgencyStatus, CommentKind, FileFolder, Network, PostFormat, PostStatus, UserRole } from '../types/database';
 
 const tz = undefined; // usa o fuso do navegador
 
@@ -172,4 +172,10 @@ export function timeAgo(iso: string | null): string {
 export function formatDay(day: string): string {
   const [y, m, d] = day.slice(0, 10).split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
+}
+
+/** Plano em vigor: teste vencido vale como Starter (igual a effective_plan no banco). */
+export function effectivePlan(agency: Pick<Agency, 'plan' | 'status' | 'trial_ends_at'>): AgencyPlan {
+  if (agency.status === 'trial' && agency.trial_ends_at && new Date(agency.trial_ends_at) < new Date()) return 'starter';
+  return agency.plan;
 }

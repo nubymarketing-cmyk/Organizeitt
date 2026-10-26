@@ -11,6 +11,7 @@ export const {
   updateBranding,
   listTeam,
   setMemberClients,
+  completeOnboarding,
   isPlatformAdmin,
   listPlatformAgencies,
   platformUpdateAgency,

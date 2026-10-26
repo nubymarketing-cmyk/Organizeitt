@@ -73,7 +73,9 @@ As telas nunca acessam dados direto: sempre `página -> hook -> service`.
 | Dono da clínica | Aprova ou pede ajuste, vê resultados e arquivos |
 | Equipe da clínica | Vê e comenta, não aprova |
 
-Planos: Starter até 5 clientes, Pro até 20, Agência sem limite. Agência nova começa com 14 dias de Pro.
+Planos: Starter até 5 clientes, Pro até 20, Agência sem limite. Agência nova se cadastra em `/cadastro`,
+começa com 14 dias de Pro e passa pelo onboarding em `/agencia/boas-vindas`. Teste vencido vale como Starter
+até o pagamento ser ligado. O limite é checado no banco (`create_client`).
 
 ## Notificações
 
