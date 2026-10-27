@@ -28,7 +28,7 @@ export function MeusPostsPage() {
       ) : posts.isError ? (
         <ErrorState error={posts.error} onRetry={() => posts.refetch()} />
       ) : !all.length ? (
-        <EmptyState title="Nenhum post ainda" text="Assim que a equipe preparar o primeiro post, ele aparece aqui para você ver." />
+        <EmptyState illustration="calendar" title="Nenhum post ainda" text="Assim que a equipe preparar o primeiro post, ele aparece aqui para você ver." />
       ) : (
         <div className="space-y-7">
           {waiting.length ? (

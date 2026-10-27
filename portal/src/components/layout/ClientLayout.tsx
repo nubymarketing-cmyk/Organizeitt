@@ -1,21 +1,22 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useMarkTourDone, useSession, useSignOut } from '../../hooks/useAuth';
 import { useMyAgency } from '../../hooks/useAgency';
 import { useClient } from '../../hooks/useClients';
 import { brandStyle } from '../../lib/brand';
-import { cx } from '../ui';
+import { PageFallback, cx } from '../ui';
 import { AgencyBrand } from './AgencyBrand';
 import { ClientTour } from '../client/ClientTour';
 import { NotificationBell } from '../NotificationBell';
 import { ThemeToggle } from '../ThemeToggle';
+import { Icon, type IconName } from '../icons';
 
 // No máximo 4 itens, com nomes que a clínica entende.
-const TABS = [
-  { to: '/app', label: 'Início', end: true },
-  { to: '/app/posts', label: 'Meus posts' },
-  { to: '/app/resultados', label: 'Resultados' },
-  { to: '/app/arquivos', label: 'Arquivos' },
+const TABS: Array<{ to: string; label: string; icon: IconName; end?: boolean }> = [
+  { to: '/app', label: 'Início', icon: 'home', end: true },
+  { to: '/app/posts', label: 'Meus posts', icon: 'calendar' },
+  { to: '/app/resultados', label: 'Resultados', icon: 'chart' },
+  { to: '/app/arquivos', label: 'Arquivos', icon: 'folder' },
 ];
 
 export function ClientLayout() {
@@ -46,15 +47,27 @@ export function ClientLayout() {
           <div className="flex shrink-0 items-center gap-1">
             <NotificationBell />
             <ThemeToggle />
-            <button className="min-h-[44px] px-2 text-xs text-muted underline-offset-2 hover:underline" onClick={() => setTourOpen(true)}>
-              Ajuda
+            <button
+              className="flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-fg/5 hover:text-fg"
+              onClick={() => setTourOpen(true)}
+              aria-label="Ajuda: como usar o portal"
+              title="Ajuda"
+            >
+              <Icon name="help" />
             </button>
-            <button className="min-h-[44px] px-2 text-xs text-muted underline-offset-2 hover:underline" onClick={() => signOut.mutate()}>
-              Sair
+            <button
+              className="flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-fg/5 hover:text-fg"
+              onClick={() => signOut.mutate()}
+              aria-label="Sair"
+              title="Sair"
+            >
+              <Icon name="logout" />
             </button>
           </div>
         </header>
-        <Outlet />
+        <Suspense fallback={<PageFallback />}>
+          <Outlet />
+        </Suspense>
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-lg backdrop-blur">
@@ -66,11 +79,12 @@ export function ClientLayout() {
               end={t.end}
               className={({ isActive }) =>
                 cx(
-                  'flex min-h-[48px] flex-1 items-center justify-center rounded-xl px-1 text-center text-xs font-bold',
-                  isActive ? 'bg-brand text-brand-fg' : 'text-muted',
+                  'flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-center text-[11px] font-semibold transition',
+                  isActive ? 'bg-brand/10 text-link' : 'text-muted hover:text-fg',
                 )
               }
             >
+              <Icon name={t.icon} />
               {t.label}
             </NavLink>
           ))}

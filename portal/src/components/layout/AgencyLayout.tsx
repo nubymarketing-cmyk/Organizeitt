@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useIsPlatformAdmin, useMyAgency } from '../../hooks/useAgency';
 import { useSession, useSignOut } from '../../hooks/useAuth';
 import { ROLE_LABEL, initials } from '../../lib/format';
 import type { Agency } from '../../types/database';
-import { cx } from '../ui';
+import { PageFallback, cx } from '../ui';
 import { Icon, type IconName } from '../icons';
 import { Logo } from './Logo';
 import { NotificationBell } from '../NotificationBell';
@@ -157,7 +157,9 @@ export function AgencyLayout() {
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-10 md:py-8">
           <AccountBanner agency={agency.data} isAdmin={isAdmin} />
-          <Outlet />
+          <Suspense fallback={<PageFallback />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>

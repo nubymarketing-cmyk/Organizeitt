@@ -18,7 +18,7 @@ export function RelatoriosPendentesPage() {
       ) : overview.isError || !overview.data ? (
         <ErrorState error={overview.error} onRetry={() => overview.refetch()} />
       ) : !overview.data.missing_reports.length ? (
-        <EmptyState title="Todos os relatórios lançados" text={`Todos os clientes já têm o relatório de ${month} publicado.`} />
+        <EmptyState illustration="done" title="Todos os relatórios lançados" text={`Todos os clientes já têm o relatório de ${month} publicado.`} />
       ) : (
         <div className="space-y-2">
           {overview.data.missing_reports.map((c) => (

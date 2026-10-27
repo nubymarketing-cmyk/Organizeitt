@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { UserRole } from '../types/database';
 import { useClients, useInviteUser } from '../hooks/useClients';
 import { ROLE_LABEL } from '../lib/format';
-import { Button, Field, InlineError, Input, Modal, Select } from './ui';
+import { Button, Dropdown, Field, InlineError, Input, Modal } from './ui';
 
 const ROLES: UserRole[] = ['client_owner', 'client_member', 'agency_member', 'agency_admin'];
 
@@ -65,25 +65,26 @@ export function InviteUserModal({
           <Field label="E-mail">
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
           </Field>
-          <Field label="Papel">
-            <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })}>
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABEL[r]}
-                </option>
-              ))}
-            </Select>
+          <Field label="Papel" group>
+            <Dropdown
+              field
+              label="Papel"
+              value={form.role}
+              onChange={(v) => setForm({ ...form, role: v as UserRole })}
+              options={ROLES.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
+            />
           </Field>
           {isClientRole ? (
-            <Field label="Clínica">
-              <Select value={form.client_id} onChange={(e) => setForm({ ...form, client_id: e.target.value })} disabled={!!clientId} required>
-                <option value="">Escolha…</option>
-                {(clients.data ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
+            <Field label="Clínica" group>
+              <Dropdown
+                field
+                label="Clínica"
+                placeholder="Escolha a clínica"
+                value={form.client_id}
+                disabled={!!clientId}
+                onChange={(v) => setForm({ ...form, client_id: v })}
+                options={(clients.data ?? []).map((c) => ({ value: c.id, label: c.name, dot: c.color ?? undefined }))}
+              />
             </Field>
           ) : null}
           {form.role === 'agency_member' ? (

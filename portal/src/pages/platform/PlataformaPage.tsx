@@ -3,7 +3,7 @@ import { useIsPlatformAdmin, usePlatformAgencies, usePlatformUpdateAgency } from
 import { AGENCY_STATUS_LABEL, PLAN_LABEL, formatDate } from '../../lib/format';
 import type { PlatformAgency } from '../../services/agency';
 import type { AgencyPlan, AgencyStatus } from '../../types/database';
-import { Card, EmptyState, ErrorState, Field, InlineError, Input, PageHeader, Select, Skeleton, SkeletonList } from '../../components/ui';
+import { Card, Dropdown, EmptyState, ErrorState, Field, InlineError, Input, PageHeader, Skeleton, SkeletonList } from '../../components/ui';
 
 /** Painel do dono da plataforma: todas as agências, plano, status e uso. */
 export function PlataformaPage() {
@@ -75,19 +75,25 @@ function AgencyCard({ agency }: { agency: PlatformAgency }) {
         <Stat label="posts no mês" value={`${agency.posts_month}`} />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Field label="Plano">
-          <Select value={agency.plan} disabled={update.isPending} onChange={(e) => change(e.target.value as AgencyPlan, agency.status)}>
-            {(Object.keys(PLAN_LABEL) as AgencyPlan[]).map((p) => (
-              <option key={p} value={p}>{PLAN_LABEL[p]}</option>
-            ))}
-          </Select>
+        <Field label="Plano" group>
+          <Dropdown
+            field
+            label="Plano"
+            value={agency.plan}
+            disabled={update.isPending}
+            onChange={(v) => change(v as AgencyPlan, agency.status)}
+            options={(Object.keys(PLAN_LABEL) as AgencyPlan[]).map((p) => ({ value: p, label: PLAN_LABEL[p] }))}
+          />
         </Field>
-        <Field label="Status">
-          <Select value={agency.status} disabled={update.isPending} onChange={(e) => change(agency.plan, e.target.value as AgencyStatus)}>
-            {(Object.keys(AGENCY_STATUS_LABEL) as AgencyStatus[]).map((s) => (
-              <option key={s} value={s}>{AGENCY_STATUS_LABEL[s]}</option>
-            ))}
-          </Select>
+        <Field label="Status" group>
+          <Dropdown
+            field
+            label="Status da agência"
+            value={agency.status}
+            disabled={update.isPending}
+            onChange={(v) => change(agency.plan, v as AgencyStatus)}
+            options={(Object.keys(AGENCY_STATUS_LABEL) as AgencyStatus[]).map((s) => ({ value: s, label: AGENCY_STATUS_LABEL[s] }))}
+          />
         </Field>
       </div>
       {agency.status === 'trial' && agency.trial_ends_at ? (

@@ -74,7 +74,7 @@ export function InicioPage() {
               ))}
             </div>
           ) : (
-            <EmptyState title="Nada agendado ainda" text="Quando a equipe agendar novos posts, eles aparecem aqui." />
+            <EmptyState illustration="calendar" title="Nada agendado ainda" text="Quando a equipe agendar novos posts, eles aparecem aqui." />
           )}
         </section>
       ) : null}

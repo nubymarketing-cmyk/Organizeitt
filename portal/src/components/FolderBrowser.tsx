@@ -4,6 +4,14 @@ import { useFiles, useUploadFiles } from '../hooks/useFiles';
 import { FOLDER_HINT, FOLDER_LABEL, formatBytes, formatDate } from '../lib/format';
 import { getFileUrl } from '../services/files';
 import { Button, Card, EmptyState, ErrorState, InlineError, SkeletonList, cx } from './ui';
+import { Icon, type IconName } from './icons';
+
+const FOLDER_ICON: Record<FileFolder, IconName> = {
+  marca: 'palette',
+  artes_finais: 'image',
+  fotos_videos: 'video',
+  documentos: 'file',
+};
 
 const FOLDERS = Object.keys(FOLDER_LABEL) as FileFolder[];
 
@@ -21,17 +29,19 @@ export function FolderBrowser({ clientId }: { clientId: string }) {
 
   if (!folder) {
     return (
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {FOLDERS.map((f) => {
           const count = all.filter((x) => x.folder === f).length;
           return (
             <button key={f} onClick={() => setFolder(f)} className="text-left">
-              <Card className="h-full hover:border-violet/40">
-                <div className="mb-3 h-8 w-10 rounded-md bg-brand opacity-80" />
+              <Card className="h-full transition hover:border-brand/40 hover:shadow-md">
+                <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-link">
+                  <Icon name={FOLDER_ICON[f]} />
+                </span>
                 <p className="font-semibold text-fg">{FOLDER_LABEL[f]}</p>
                 <p className="text-xs text-muted">{FOLDER_HINT[f]}</p>
-                <p className="mt-2 text-xs text-lilac">
-                  {count} arquivo{count === 1 ? '' : 's'}
+                <p className="mt-3 text-xs font-medium text-muted">
+                  {count ? `${count} arquivo${count === 1 ? '' : 's'}` : 'Vazia'}
                 </p>
               </Card>
             </button>
@@ -45,8 +55,9 @@ export function FolderBrowser({ clientId }: { clientId: string }) {
 
   return (
     <div className="space-y-4">
-      <button className="text-sm text-lilac" onClick={() => setFolder(null)}>
-        ‹ Pastas
+      <button className="inline-flex min-h-[44px] items-center gap-1 text-sm text-link" onClick={() => setFolder(null)}>
+        <Icon name="chevronLeft" className="h-4 w-4" />
+        Pastas
       </button>
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -54,7 +65,8 @@ export function FolderBrowser({ clientId }: { clientId: string }) {
           <p className="text-xs text-muted">{FOLDER_HINT[folder]}</p>
         </div>
         <Button loading={upload.isPending} onClick={() => input.current?.click()}>
-          Enviar
+          <Icon name="upload" className="h-4 w-4" />
+          Enviar arquivos
         </Button>
         <input
           ref={input}
@@ -78,7 +90,7 @@ export function FolderBrowser({ clientId }: { clientId: string }) {
           ))}
         </div>
       ) : (
-        <EmptyState title="Pasta vazia" text="Envie o primeiro arquivo para esta pasta." />
+        <EmptyState illustration="folder" title="Pasta vazia" text="Envie o primeiro arquivo para esta pasta." />
       )}
     </div>
   );
@@ -103,12 +115,13 @@ function FileRow({ file }: { file: FileRecord }) {
       setState('idle');
     }
   };
-  const kind = file.mime_type?.startsWith('image/') ? 'IMG' : file.mime_type?.startsWith('video/') ? 'VID' : file.mime_type === 'application/pdf' ? 'PDF' : 'DOC';
+  const kind: IconName = file.mime_type?.startsWith('image/') ? 'image' : file.mime_type?.startsWith('video/') ? 'video' : 'file';
+  const pdf = file.mime_type === 'application/pdf';
   return (
     <Card className="py-3">
       <div className="flex items-center gap-3">
-        <span className={cx('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold', kind === 'PDF' ? 'bg-bad/15 text-bad' : 'bg-violet/20 text-lilac')}>
-          {kind}
+        <span className={cx('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', pdf ? 'bg-bad/10 text-bad' : 'bg-brand/10 text-link')}>
+          <Icon name={kind} />
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-fg">{file.name}</p>
@@ -116,8 +129,9 @@ function FileRow({ file }: { file: FileRecord }) {
             {formatDate(file.created_at)} {file.size_bytes ? `· ${formatBytes(file.size_bytes)}` : ''}
           </p>
         </div>
-        <Button variant="ghost" className="px-2" loading={state === 'loading'} onClick={download}>
-          baixar
+        <Button variant="ghost" className="px-3" loading={state === 'loading'} onClick={download} aria-label={`Baixar ${file.name}`}>
+          <Icon name="download" className="h-4 w-4" />
+          <span className="hidden sm:inline">Baixar</span>
         </Button>
       </div>
       <InlineError error={error} />

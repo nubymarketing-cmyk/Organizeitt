@@ -147,7 +147,7 @@ export function AgendaPage() {
       ) : posts.isError ? (
         <ErrorState error={posts.error} onRetry={() => posts.refetch()} />
       ) : !clients.data?.length ? (
-        <EmptyState icon="users" title="Nenhum cliente ainda" text="Cadastre o primeiro cliente e os posts dele aparecem aqui." />
+        <EmptyState illustration="people" title="Nenhum cliente ainda" text="Cadastre o primeiro cliente e os posts dele aparecem aqui." />
       ) : view === 'calendario' ? (
         <PostMonthCalendar
           cursor={cursor}
@@ -184,7 +184,7 @@ export function AgendaPage() {
         </div>
       ) : (
         <EmptyState
-          icon="calendar"
+          illustration="calendar"
           title={hasFilters ? 'Nenhum post com estes filtros' : 'Nenhum post ainda'}
           text={quick ? 'Bom sinal: nada pendente aqui.' : hasFilters ? 'Mude os filtros para ver outros posts.' : 'Abra um cliente e crie o primeiro post.'}
         />

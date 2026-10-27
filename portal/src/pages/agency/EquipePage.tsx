@@ -34,6 +34,7 @@ export function EquipePage() {
         <ErrorState error={team.error} onRetry={() => team.refetch()} />
       ) : !others.length ? (
         <EmptyState
+          illustration="people"
           title="Só você na equipe por enquanto"
           text="Convide designers e social media e escolha quais clientes cada um atende."
           action={<Button onClick={() => setInviting(true)}>Convidar a primeira pessoa</Button>}

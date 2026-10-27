@@ -38,7 +38,7 @@ export function AgencyReports({ clientId }: { clientId: string }) {
       ) : reports.isError ? (
         <ErrorState error={reports.error} onRetry={() => reports.refetch()} />
       ) : !reports.data?.length ? (
-        <EmptyState title="Nenhum relatório lançado" text="Lance os números do mês e publique quando estiver pronto." />
+        <EmptyState illustration="chart" title="Nenhum relatório lançado" text="Lance os números do mês e publique quando estiver pronto." />
       ) : (
         <div className="space-y-2">
           {reports.data.map((r) => (

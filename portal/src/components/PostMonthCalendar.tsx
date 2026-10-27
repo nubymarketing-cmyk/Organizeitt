@@ -247,6 +247,7 @@ export function PostMonthCalendar({
                       ) : null}
                     </div>
                   </Link>
+                  {onMove ? <MoveDate post={p} onMove={onMove} /> : null}
                 </li>
               ))}
             </ul>
@@ -327,6 +328,47 @@ function Legend({ colorBy, posts }: { colorBy: 'status' | 'client'; posts: Calen
           {name}
         </span>
       ))}
+    </div>
+  );
+}
+
+/** Mudar a data pelo painel: funciona no celular, onde não dá para arrastar. */
+function MoveDate({ post, onMove }: { post: CalendarPost; onMove: (p: CalendarPost, day: Date) => void }) {
+  const current = post.scheduled_at ? dayKey(new Date(post.scheduled_at)) : '';
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(current);
+  if (!open) {
+    return (
+      <button className="mt-1 min-h-[32px] px-1 text-xs font-medium text-link hover:underline" onClick={() => setOpen(true)}>
+        Mudar data
+      </button>
+    );
+  }
+  const valid = /^\d{4}-\d{2}-\d{2}$/.test(value) && value !== current;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <input
+        type="date"
+        autoFocus
+        value={value}
+        aria-label={`Nova data para ${post.title}`}
+        onChange={(e) => setValue(e.target.value)}
+        className="min-h-[40px] flex-1 rounded-lg border border-line bg-surface px-2 text-sm text-fg focus:border-brand focus:outline-none"
+      />
+      <Button
+        className="min-h-[40px] px-3 py-1.5"
+        disabled={!valid}
+        onClick={() => {
+          const [y, m, d] = value.split('-').map(Number);
+          onMove(post, new Date(y, m - 1, d));
+          setOpen(false);
+        }}
+      >
+        Mover
+      </Button>
+      <button className="min-h-[40px] px-2 text-xs text-muted hover:text-fg" onClick={() => setOpen(false)}>
+        Cancelar
+      </button>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export function CadastroPage() {
             O cadastro de agência funciona só com o Supabase ligado.
           </p>
         ) : (
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-line bg-surface p-5 shadow-md">
             <Field label="Nome da agência">
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="organization" required autoFocus />
             </Field>

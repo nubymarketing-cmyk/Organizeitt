@@ -4,6 +4,7 @@ import { useSession } from '../../hooks/useAuth';
 import { useClients, useCreateClient } from '../../hooks/useClients';
 import { Badge, Button, Card, EmptyState, ErrorState, Field, InlineError, Input, Modal, PageHeader, SkeletonList, cx } from '../../components/ui';
 import { capitalize } from '../../lib/format';
+import { Icon } from '../../components/icons';
 import { InviteUserModal } from '../../components/InviteUserModal';
 import { ClientAvatar } from '../../components/AgencyParts';
 import type { ClientWithCounts, PaymentStatus } from '../../services/clients';
@@ -31,12 +32,27 @@ export function ClientesPage() {
                 Convidar
               </Button>
             ) : null}
-            {isAdmin ? <Button onClick={() => setCreating(true)}>+ Novo cliente</Button> : null}
+            {isAdmin ? (
+              <Button onClick={() => setCreating(true)}>
+                <Icon name="plus" className="h-4 w-4" />
+                Novo cliente
+              </Button>
+            ) : null}
           </div>
         }
       />
 
-      <Input placeholder="Buscar clínica…" value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
+      <div className="relative mb-4 max-w-sm">
+        <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dim" />
+        <Input
+          type="search"
+          aria-label="Buscar clínica"
+          placeholder="Buscar clínica"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       {clients.isLoading ? (
         <SkeletonList rows={4} />
@@ -44,6 +60,7 @@ export function ClientesPage() {
         <ErrorState error={clients.error} onRetry={() => clients.refetch()} />
       ) : !list.length ? (
         <EmptyState
+          illustration="people"
           title={search ? 'Nenhuma clínica encontrada' : isAdmin ? 'Nenhum cliente ainda' : 'Nenhum cliente atribuído a você'}
           text={
             search

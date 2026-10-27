@@ -27,7 +27,7 @@ export function ResultadosPage() {
       ) : reports.isError ? (
         <ErrorState error={reports.error} onRetry={() => reports.refetch()} />
       ) : !reports.data?.length ? (
-        <EmptyState title="Ainda sem resultados" text="Os números do mês aparecem aqui assim que a equipe fechar o primeiro mês." />
+        <EmptyState illustration="chart" title="Ainda sem resultados" text="Os números do mês aparecem aqui assim que a equipe fechar o primeiro mês." />
       ) : (
         <MonthResults
           reports={reports.data}
@@ -97,7 +97,7 @@ function BigNumber({ label, value, before }: { label: string; value: number | nu
           <p className="font-display text-2xl font-bold tracking-tight">
             {up ? '↑' : down ? '↓' : '='} {Math.abs(diff)}%
           </p>
-          <p className="text-xs">{up ? 'a mais que' : down ? 'a menos que' : 'igual ao'} mês anterior</p>
+          <p className="text-xs">{up ? 'a mais que o' : down ? 'a menos que o' : 'igual ao'} mês anterior</p>
         </div>
       ) : (
         <p className="max-w-[110px] text-right text-xs text-dim">sem mês anterior para comparar</p>

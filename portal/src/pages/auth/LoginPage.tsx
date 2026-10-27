@@ -62,7 +62,7 @@ export function LoginPage() {
             </button>
           </div>
         ) : (
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={onSubmit} className="space-y-3 rounded-2xl border border-line bg-surface p-5 shadow-md">
             <Input
               type="email"
               inputMode="email"

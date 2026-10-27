@@ -1,30 +1,39 @@
+import { Suspense, lazy, type ComponentType } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AgencyLayout } from './components/layout/AgencyLayout';
 import { ClientLayout } from './components/layout/ClientLayout';
 import { HomeRedirect, RequireAuth } from './components/layout/RequireAuth';
 import { useAuthListener } from './hooks/useAuth';
 import { LoginPage } from './pages/auth/LoginPage';
-import { CadastroPage } from './pages/auth/CadastroPage';
-import { BoasVindasPage } from './pages/agency/BoasVindasPage';
-import { InicioPage } from './pages/client/InicioPage';
-import { PostDetalhePage } from './pages/client/PostDetalhePage';
-import { MeusPostsPage } from './pages/client/MeusPostsPage';
-import { ResultadosPage } from './pages/client/ResultadosPage';
-import { AprovarPage } from './pages/client/AprovarPage';
-import { ArquivosPage } from './pages/client/ArquivosPage';
-import { ClientesPage } from './pages/agency/ClientesPage';
-import { ClienteDetalhePage } from './pages/agency/ClienteDetalhePage';
-import { PostEditorPage } from './pages/agency/PostEditorPage';
-import { EquipePage } from './pages/agency/EquipePage';
-import { VisaoGeralPage } from './pages/agency/VisaoGeralPage';
-import { AgendaPage } from './pages/agency/AgendaPage';
-import { RelatoriosPendentesPage } from './pages/agency/RelatoriosPendentesPage';
-import { ConfiguracoesPage } from './pages/agency/ConfiguracoesPage';
-import { PlataformaPage } from './pages/platform/PlataformaPage';
+import { PageFallback } from './components/ui';
+
+/** Página carregada só quando é aberta (o login vem junto, por ser a primeira tela). */
+function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, name: K) {
+  return lazy(() => load().then((m) => ({ default: m[name] })));
+}
+
+const CadastroPage = page(() => import('./pages/auth/CadastroPage'), 'CadastroPage');
+const BoasVindasPage = page(() => import('./pages/agency/BoasVindasPage'), 'BoasVindasPage');
+const InicioPage = page(() => import('./pages/client/InicioPage'), 'InicioPage');
+const PostDetalhePage = page(() => import('./pages/client/PostDetalhePage'), 'PostDetalhePage');
+const MeusPostsPage = page(() => import('./pages/client/MeusPostsPage'), 'MeusPostsPage');
+const ResultadosPage = page(() => import('./pages/client/ResultadosPage'), 'ResultadosPage');
+const AprovarPage = page(() => import('./pages/client/AprovarPage'), 'AprovarPage');
+const ArquivosPage = page(() => import('./pages/client/ArquivosPage'), 'ArquivosPage');
+const ClientesPage = page(() => import('./pages/agency/ClientesPage'), 'ClientesPage');
+const ClienteDetalhePage = page(() => import('./pages/agency/ClienteDetalhePage'), 'ClienteDetalhePage');
+const PostEditorPage = page(() => import('./pages/agency/PostEditorPage'), 'PostEditorPage');
+const EquipePage = page(() => import('./pages/agency/EquipePage'), 'EquipePage');
+const VisaoGeralPage = page(() => import('./pages/agency/VisaoGeralPage'), 'VisaoGeralPage');
+const AgendaPage = page(() => import('./pages/agency/AgendaPage'), 'AgendaPage');
+const RelatoriosPendentesPage = page(() => import('./pages/agency/RelatoriosPendentesPage'), 'RelatoriosPendentesPage');
+const ConfiguracoesPage = page(() => import('./pages/agency/ConfiguracoesPage'), 'ConfiguracoesPage');
+const PlataformaPage = page(() => import('./pages/platform/PlataformaPage'), 'PlataformaPage');
 
 export function App() {
   useAuthListener();
   return (
+    <Suspense fallback={<PageFallback />}>
     <Routes>
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
@@ -68,6 +77,7 @@ export function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 

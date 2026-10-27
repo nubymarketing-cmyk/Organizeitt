@@ -13,6 +13,7 @@ import { CLIENT_STATUS_LABEL, STATUS_DOT, STATUS_LABEL, STATUS_STYLE } from '../
 import { useSignedUrl } from '../../hooks/useSignedUrl';
 import { parseDemoMedia } from '../../services/storage';
 import { Icon, type IconName } from '../icons';
+import { Illustration, type IllustrationName } from '../Illustration';
 
 export function cx(...c: Array<string | false | null | undefined>) {
   return c.filter(Boolean).join(' ');
@@ -58,6 +59,17 @@ export function Skeleton({ className }: { className?: string }) {
   return <div className={cx('animate-pulse rounded-xl bg-fg/[.07]', className)} />;
 }
 
+/** Enquanto a página carrega (código dividido por página). */
+export function PageFallback() {
+  return (
+    <div className="mx-auto max-w-3xl space-y-4 p-6" aria-busy="true" aria-label="Carregando">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-32" />
+      <Skeleton className="h-24" />
+    </div>
+  );
+}
+
 export function SkeletonList({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3" aria-busy="true" aria-label="Carregando">
@@ -68,13 +80,29 @@ export function SkeletonList({ rows = 3 }: { rows?: number }) {
   );
 }
 
-/** Estado vazio: ícone simples, título, orientação e uma ação clara. */
-export function EmptyState({ title, text, action, icon = 'inbox' }: { title: string; text?: string; action?: ReactNode; icon?: IconName }) {
+/** Estado vazio: ilustração (ou ícone), título, orientação e uma ação clara. */
+export function EmptyState({
+  title,
+  text,
+  action,
+  icon = 'inbox',
+  illustration,
+}: {
+  title: string;
+  text?: string;
+  action?: ReactNode;
+  icon?: IconName;
+  illustration?: IllustrationName;
+}) {
   return (
     <div className="rounded-2xl border border-dashed border-line bg-surface/50 px-5 py-10 text-center">
-      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand/10 text-link">
-        <Icon name={icon} />
-      </div>
+      {illustration ? (
+        <Illustration name={illustration} className="mx-auto mb-4 h-24 w-32" />
+      ) : (
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand/10 text-link">
+          <Icon name={icon} />
+        </div>
+      )}
       <p className="font-display text-base font-bold text-fg">{title}</p>
       {text ? <p className="mx-auto mt-1 max-w-xs text-sm text-muted">{text}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
@@ -188,8 +216,9 @@ export interface DropdownOption {
 }
 
 /**
- * Filtro em dropdown, no lugar do select nativo. Mostra o rótulo quando está no valor padrão
- * e destaca quando há um filtro ativo.
+ * Dropdown no lugar do select nativo.
+ * Filtro (padrão): mostra o rótulo no valor "all" e fica destacado quando há filtro ativo.
+ * Campo (field): sempre mostra a opção escolhida, ou o placeholder, como um input de formulário.
  */
 export function Dropdown({
   label,
@@ -197,6 +226,9 @@ export function Dropdown({
   options,
   onChange,
   allLabel,
+  field,
+  placeholder,
+  disabled,
 }: {
   label: string;
   value: string;
@@ -204,12 +236,28 @@ export function Dropdown({
   onChange: (v: string) => void;
   /** Opção "todos" (valor "all"). */
   allLabel?: string;
+  field?: boolean;
+  placeholder?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const all = allLabel ? [{ value: 'all', label: allLabel }, ...options] : options;
   const current = all.find((o) => o.value === value);
-  const active = value !== 'all' && !!current;
+  const active = field ? false : value !== 'all' && !!current;
+  const shown = field ? (current?.label ?? placeholder ?? label) : active ? current!.label : label;
+
+  // Setas movem entre as opções; a lista abre focando a opção escolhida.
+  const focusOption = (dir: 1 | -1 | 0) => {
+    const items = Array.from(box.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
+    if (!items.length) return;
+    const i = items.findIndex((el) => el === document.activeElement);
+    const start = i === -1 ? Math.max(0, items.findIndex((el) => el.getAttribute('aria-selected') === 'true')) : i;
+    items[dir === 0 ? start : (start + dir + items.length) % items.length]?.focus();
+  };
+  useEffect(() => {
+    if (open) requestAnimationFrame(() => focusOption(0));
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -233,21 +281,40 @@ export function Dropdown({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={label}
+        aria-label={field ? `${label}: ${shown}` : label}
+        disabled={disabled}
         onClick={() => setOpen(!open)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            setOpen(true);
+          }
+        }}
         className={cx(
-          'inline-flex min-h-[40px] w-full items-center justify-between gap-2 rounded-xl border px-3 text-sm font-medium shadow-sm transition',
-          active ? 'border-brand/40 bg-brand/10 text-fg' : 'border-line bg-surface text-muted hover:text-fg',
+          'inline-flex w-full items-center justify-between gap-2 rounded-xl border px-3 text-sm shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60',
+          field ? 'min-h-[44px] border-line bg-surface text-fg' : 'min-h-[40px] font-medium',
+          !field && (active ? 'border-brand/40 bg-brand/10 text-fg' : 'border-line bg-surface text-muted hover:text-fg'),
+          field && !current && 'text-dim',
         )}
       >
         <span className="flex min-w-0 items-center gap-2 truncate">
-          {active && current?.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: current.dot }} /> : null}
-          <span className="truncate">{active ? current.label : label}</span>
+          {(field || active) && current?.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: current.dot }} /> : null}
+          <span className="truncate">{shown}</span>
         </span>
         <Icon name="chevronDown" className="h-4 w-4 shrink-0" />
       </button>
       {open ? (
-        <div role="listbox" className="absolute left-0 z-40 mt-1 max-h-72 min-w-full overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <div
+          role="listbox"
+          aria-label={label}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              focusOption(e.key === 'ArrowDown' ? 1 : -1);
+            }
+          }}
+          className="absolute left-0 z-40 mt-1 max-h-72 min-w-full overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-lg"
+        >
           {all.map((o) => (
             <button
               key={o.value}
@@ -256,9 +323,10 @@ export function Dropdown({
               onClick={() => {
                 onChange(o.value);
                 setOpen(false);
+                box.current?.querySelector<HTMLButtonElement>('button')?.focus();
               }}
               className={cx(
-                'flex min-h-[40px] w-full items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm',
+                'flex min-h-[40px] w-full items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm outline-none focus-visible:bg-fg/5',
                 o.value === value ? 'bg-brand/10 font-semibold text-fg' : 'text-fg hover:bg-fg/5',
               )}
             >
@@ -285,13 +353,15 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   );
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+/** Rótulo + controle. Use group para controles que não são input (Dropdown, listas). */
+export function Field({ label, hint, children, group }: { label: string; hint?: string; children: ReactNode; group?: boolean }) {
+  const Tag = group ? 'div' : 'label';
   return (
-    <label className="block">
+    <Tag className="block">
       <span className="mb-1.5 block text-sm font-medium text-fg">{label}</span>
       {children}
       {hint ? <span className="mt-1 block text-xs text-dim">{hint}</span> : null}
-    </label>
+    </Tag>
   );
 }
 

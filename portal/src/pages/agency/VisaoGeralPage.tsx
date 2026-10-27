@@ -146,6 +146,7 @@ function WeekBlock() {
         <EmptyState title="Nenhum post com estes filtros" text="Mude os filtros para ver os outros posts da semana." />
       ) : (
         <EmptyState
+          illustration="calendar"
           title="Nada agendado para os próximos 7 dias"
           text={clients.data?.length ? 'Abra um cliente e crie o próximo post.' : 'Cadastre o primeiro cliente para começar a planejar.'}
         />

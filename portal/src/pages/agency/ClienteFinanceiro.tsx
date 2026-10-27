@@ -62,7 +62,7 @@ export function ClienteFinanceiro({ client }: { client: Client }) {
       ) : charges.isError ? (
         <ErrorState error={charges.error} onRetry={() => charges.refetch()} />
       ) : !charges.data?.length ? (
-        <EmptyState title="Nenhuma cobrança lançada" text="Lance a mensalidade do mês acima e marque como paga quando a clínica pagar." />
+        <EmptyState illustration="inbox" title="Nenhuma cobrança lançada" text="Lance a mensalidade do mês acima e marque como paga quando a clínica pagar." />
       ) : (
         <div className="space-y-2">
           {charges.data.map((c) => (

@@ -288,7 +288,7 @@ function ClientPostsTab({
         </div>
       ) : (
         <EmptyState
-          icon="calendar"
+          illustration="calendar"
           title={posts?.length ? 'Nenhum post com estes filtros' : 'Nenhum post ainda'}
           text={posts?.length ? 'Mude os filtros para ver os outros posts.' : 'Planeje o primeiro post deste cliente.'}
           action={posts?.length ? undefined : <Button onClick={() => create()}>Criar post</Button>}
@@ -326,7 +326,7 @@ function ClientUsers({ clientId }: { clientId: string }) {
           ))}
         </div>
       ) : (
-        <EmptyState title="Ninguém da clínica tem acesso ainda" text="Convide o dono ou a recepção para começar a aprovar posts." />
+        <EmptyState illustration="people" title="Ninguém da clínica tem acesso ainda" text="Convide o dono ou a recepção para começar a aprovar posts." />
       )}
 
       {isAdmin ? (

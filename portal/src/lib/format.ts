@@ -184,3 +184,12 @@ export function effectivePlan(agency: Pick<Agency, 'plan' | 'status' | 'trial_en
 export function capitalize(s: string): string {
   return s.charAt(0).toLocaleUpperCase('pt-BR') + s.slice(1);
 }
+
+/** Cor do status em CSS (para bolinhas em dropdowns), seguindo os tokens do tema. */
+export const STATUS_HEX: Record<PostStatus, string> = {
+  in_creation: 'rgb(var(--dim))',
+  awaiting_approval: 'rgb(var(--warn))',
+  changes_requested: 'rgb(var(--bad))',
+  approved: 'rgb(var(--info))',
+  published: 'rgb(var(--ok))',
+};
