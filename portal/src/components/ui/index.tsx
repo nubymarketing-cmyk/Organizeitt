@@ -276,7 +276,11 @@ export function Dropdown({
   }, [open]);
 
   return (
-    <div ref={box} className="relative">
+    <div ref={box} className={cx('relative', open && 'z-50')}>
+      {open ? (
+        // Fundo levemente escurecido: o que está atrás da lista não disputa a leitura.
+        <div className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[3px] sm:bg-black/15" aria-hidden onMouseDown={() => setOpen(false)} />
+      ) : null}
       <button
         type="button"
         aria-haspopup="listbox"
@@ -292,6 +296,8 @@ export function Dropdown({
         }}
         className={cx(
           'inline-flex w-full items-center justify-between gap-2 rounded-xl border px-3 text-sm shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60',
+          // Só o filtro aberto fica acima do fundo desfocado.
+          open && 'relative z-50',
           field ? 'min-h-[44px] border-line bg-surface text-fg' : 'min-h-[40px] font-medium',
           !field && (active ? 'border-brand/40 bg-brand/10 text-fg' : 'border-line bg-surface text-muted hover:text-fg'),
           field && !current && 'text-dim',
@@ -313,8 +319,14 @@ export function Dropdown({
               focusOption(e.key === 'ArrowDown' ? 1 : -1);
             }
           }}
-          className="absolute left-0 z-40 mt-1 max-h-72 min-w-full overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-lg"
+          className={cx(
+            'z-50 overflow-y-auto border border-line bg-surface p-1 shadow-lg',
+            // Celular: gaveta na parte de baixo da tela. Computador: lista logo abaixo do botão.
+            'fixed inset-x-0 bottom-0 max-h-[70vh] rounded-t-2xl pb-[calc(0.5rem+env(safe-area-inset-bottom))]',
+            'sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:mt-1 sm:max-h-72 sm:min-w-full sm:rounded-xl sm:pb-1',
+          )}
         >
+          <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted sm:hidden">{label}</p>
           {all.map((o) => (
             <button
               key={o.value}

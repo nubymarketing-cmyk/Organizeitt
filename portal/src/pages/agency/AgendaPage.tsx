@@ -104,23 +104,23 @@ export function AgendaPage() {
           </div>
         ) : null}
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          <Dropdown label="Todos os clientes" allLabel="Todos os clientes" value={clientId} onChange={(v) => set({ cliente: v })} options={clientOptions} />
+          <Dropdown label="Cliente" allLabel="Todos os clientes" value={clientId} onChange={(v) => set({ cliente: v })} options={clientOptions} />
           <Dropdown
-            label="Todas as redes"
+            label="Rede"
             allLabel="Todas as redes"
             value={network}
             onChange={(v) => set({ rede: v })}
             options={(Object.keys(NETWORK_LABEL) as Network[]).map((n) => ({ value: n, label: NETWORK_LABEL[n] }))}
           />
           <Dropdown
-            label="Todos os status"
+            label="Status"
             allLabel="Todos os status"
             value={quick ? 'all' : status}
             onChange={(v) => set({ status: v, filtro: '' })}
             options={(Object.keys(STATUS_LABEL) as PostStatus[]).map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
           />
           <Dropdown
-            label="Todos os responsáveis"
+            label="Responsável"
             allLabel="Todos os responsáveis"
             value={assignee}
             onChange={(v) => set({ responsavel: v })}

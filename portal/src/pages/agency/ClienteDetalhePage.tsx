@@ -230,7 +230,7 @@ function ClientPostsTab({
         <div className="flex flex-wrap items-center gap-2">
           <div className="w-44">
             <Dropdown
-              label="Todas as redes"
+              label="Rede"
               allLabel="Todas as redes"
               value={network}
               onChange={(v) => setNetwork(v as Network | 'all')}

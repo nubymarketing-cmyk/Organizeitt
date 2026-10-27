@@ -100,28 +100,28 @@ function WeekBlock() {
       </div>
       <div className="mb-3 grid grid-cols-2 gap-2 xl:grid-cols-4">
         <Dropdown
-          label="Todos os clientes"
+          label="Cliente"
           allLabel="Todos os clientes"
           value={clientId}
           onChange={setClientId}
           options={(clients.data ?? []).map((c) => ({ value: c.id, label: c.name, dot: c.color ?? undefined }))}
         />
         <Dropdown
-          label="Todas as redes"
+          label="Rede"
           allLabel="Todas as redes"
           value={network}
           onChange={(v) => setNetwork(v as Network | 'all')}
           options={(Object.keys(NETWORK_LABEL) as Network[]).map((n) => ({ value: n, label: NETWORK_LABEL[n] }))}
         />
         <Dropdown
-          label="Todos os status"
+          label="Status"
           allLabel="Todos os status"
           value={status}
           onChange={(v) => setStatus(v as PostStatus | 'all')}
           options={(Object.keys(STATUS_LABEL) as PostStatus[]).map((st) => ({ value: st, label: STATUS_LABEL[st] }))}
         />
         <Dropdown
-          label="Todos os responsáveis"
+          label="Responsável"
           allLabel="Todos os responsáveis"
           value={assignee}
           onChange={setAssignee}
