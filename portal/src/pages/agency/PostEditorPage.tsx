@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { Network, Post, PostFormat, PostStatus } from '../../types/database';
 import {
   useCreatePost,
@@ -65,6 +65,9 @@ export function PostEditorPage() {
 
 function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typeof usePost>['data'] | null }) {
   const navigate = useNavigate();
+  // Novo post a partir do calendário: ?data=YYYY-MM-DD já preenche a data, às 10h.
+  const [params] = useSearchParams();
+  const presetDay = /^\d{4}-\d{2}-\d{2}$/.test(params.get('data') ?? '') ? params.get('data') : null;
   const client = useClient(clientId);
   const { data: profile } = useSession();
   const team = useTeam();
@@ -87,7 +90,7 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
           status: p.status,
           assignee_id: p.assignee_id ?? '',
         }
-      : { ...EMPTY, assignee_id: profile?.id ?? '' },
+      : { ...EMPTY, assignee_id: profile?.id ?? '', scheduled_at: presetDay ? `${presetDay}T10:00` : '' },
   );
   // Botões de fluxo (enviar, publicar, voltar) mudam o status salvo: o campo acompanha.
   const savedStatus = p?.status;
@@ -172,12 +175,12 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
 
   return (
     <div className="max-w-2xl space-y-6">
-      <Link to={`/agencia/clientes/${clientId}`} className="text-sm text-lilac">
+      <Link to={`/agencia/clientes/${clientId}`} className="inline-flex min-h-[44px] items-center text-sm text-link">
         ‹ {client.data?.name ?? 'Cliente'}
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-extrabold text-white">{p ? p.title : 'Novo post'}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-fg">{p ? p.title : 'Novo post'}</h1>
         {p ? (
           <div className="flex items-center gap-2">
             <StatusBadge status={p.status} />
@@ -189,7 +192,7 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
       {status === 'changes_requested' && lastChangeRequest ? (
         <Card className="border-bad/30 bg-bad/10">
           <p className="text-xs font-semibold uppercase tracking-wider text-bad">Ajuste pedido por {lastChangeRequest.author_name}</p>
-          <p className="mt-1 whitespace-pre-line text-sm text-white">{lastChangeRequest.body}</p>
+          <p className="mt-1 whitespace-pre-line text-sm text-fg">{lastChangeRequest.body}</p>
           <p className="mt-2 text-xs text-muted">Edite a legenda e a mídia abaixo e envie como nova versão.</p>
         </Card>
       ) : null}
@@ -246,7 +249,7 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
               <Textarea value={form.caption} onChange={(e) => setForm({ ...form, caption: e.target.value })} className="min-h-[140px]" />
             </Field>
             <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">Mídia (na ordem do carrossel)</p>
+              <p className="mb-1.5 text-sm font-medium text-fg">Mídia (na ordem do carrossel)</p>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {form.media.map((m, i) => (
                   <div key={m} className="relative overflow-hidden rounded-lg border border-line">
@@ -288,7 +291,7 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
             <div className="max-w-xs">
               <MediaCarousel media={current?.media ?? []} />
             </div>
-            <p className="whitespace-pre-line text-sm text-white">{current?.caption || 'sem legenda'}</p>
+            <p className="whitespace-pre-line text-sm text-fg">{current?.caption || 'sem legenda'}</p>
             <p className="text-xs text-dim">Para mudar legenda ou mídia, volte o post para criação.</p>
           </div>
         )}
@@ -298,7 +301,7 @@ function Editor({ clientId, detail }: { clientId: string; detail: ReturnType<typ
 
         <div className="flex flex-wrap gap-2">
           {status !== 'changes_requested' || statusChanged || assigneeChanged ? (
-            <Button variant="secondary" loading={create.isPending || update.isPending} disabled={busy} onClick={() => void save()}>
+            <Button variant={p ? 'secondary' : 'primary'} loading={create.isPending || update.isPending} disabled={busy} onClick={() => void save()}>
               {p ? 'Salvar' : 'Criar post'}
             </Button>
           ) : null}

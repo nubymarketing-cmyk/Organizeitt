@@ -64,7 +64,7 @@ function AgencyCard({ agency }: { agency: PlatformAgency }) {
   return (
     <Card className="space-y-3">
       <div>
-        <p className="font-semibold text-white">{agency.name}</p>
+        <p className="font-semibold text-fg">{agency.name}</p>
         <p className="text-xs text-muted">
           {agency.admin_email ?? 'sem admin'} · desde {formatDate(agency.created_at)}
         </p>
@@ -100,8 +100,8 @@ function AgencyCard({ agency }: { agency: PlatformAgency }) {
 
 function Stat({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
   return (
-    <div className="rounded-xl bg-white/[.04] px-2 py-2">
-      <p className={warn ? 'font-display text-lg font-bold text-warn' : 'font-display text-lg font-bold text-white'}>{value}</p>
+    <div className="rounded-xl bg-fg/[.04] px-2 py-2">
+      <p className={warn ? 'font-display text-lg font-bold text-warn' : 'font-display text-lg font-bold text-fg'}>{value}</p>
       <p className="text-[11px] text-dim">{label}</p>
     </div>
   );

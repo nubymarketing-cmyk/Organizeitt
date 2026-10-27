@@ -84,7 +84,7 @@ function ChargeRow({ charge }: { charge: ClientCharge }) {
     <Card className="space-y-2 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="font-semibold text-white">
+          <p className="font-semibold text-fg">
             {formatCurrency(charge.amount)} · vence {formatDay(charge.due_date)}
           </p>
           {charge.notes ? <p className="text-xs text-muted">{charge.notes}</p> : null}
@@ -92,7 +92,7 @@ function ChargeRow({ charge }: { charge: ClientCharge }) {
         <span
           className={cx(
             'rounded-full px-2.5 py-1 text-xs font-bold',
-            charge.paid_at ? 'bg-ok/15 text-ok' : overdue ? 'bg-bad/15 text-bad' : 'bg-white/5 text-muted',
+            charge.paid_at ? 'bg-ok/15 text-ok' : overdue ? 'bg-bad/15 text-bad' : 'bg-fg/5 text-muted',
           )}
         >
           {label}

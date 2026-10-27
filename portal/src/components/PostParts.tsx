@@ -23,7 +23,7 @@ export function MediaCarousel({ media }: { media: string[] }) {
         {media.length > 1 ? (
           <>
             <button
-              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-1 text-xl text-white disabled:opacity-30"
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-1 text-xl text-fg disabled:opacity-30"
               onClick={() => setI(Math.max(0, idx - 1))}
               disabled={idx === 0}
               aria-label="Anterior"
@@ -31,7 +31,7 @@ export function MediaCarousel({ media }: { media: string[] }) {
               ‹
             </button>
             <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-1 text-xl text-white disabled:opacity-30"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 px-3 py-1 text-xl text-fg disabled:opacity-30"
               onClick={() => setI(Math.min(media.length - 1, idx + 1))}
               disabled={idx === media.length - 1}
               aria-label="Próxima"
@@ -44,7 +44,7 @@ export function MediaCarousel({ media }: { media: string[] }) {
       {media.length > 1 ? (
         <div className="mt-2 flex justify-center gap-1.5">
           {media.map((m, n) => (
-            <span key={m} className={cx('h-1.5 rounded-full transition-all', n === idx ? 'w-5 bg-lilac' : 'w-1.5 bg-white/20')} />
+            <span key={m} className={cx('h-1.5 rounded-full transition-all', n === idx ? 'w-5 bg-lilac' : 'w-1.5 bg-fg/20')} />
           ))}
         </div>
       ) : null}
@@ -58,12 +58,12 @@ export function VersionHistory({ versions, current }: { versions: PostVersion[];
   if (!older.length) return null;
   return (
     <section>
-      <h2 className="mb-2 font-display text-base font-bold text-white">Versões anteriores</h2>
+      <h2 className="mb-2 font-display text-base font-bold text-fg">Versões anteriores</h2>
       <div className="space-y-2">
         {older.map((v) => (
           <Card key={v.id} className="py-3">
             <button className="flex w-full items-center justify-between text-left" onClick={() => setOpen(open === v.version_number ? null : v.version_number)}>
-              <span className="font-semibold text-white">Versão {v.version_number}</span>
+              <span className="font-semibold text-fg">Versão {v.version_number}</span>
               <span className="text-xs text-muted">{formatDateTime(v.created_at)}</span>
             </button>
             {open === v.version_number ? (
@@ -90,7 +90,7 @@ export function CommentThread({ postId, comments }: { postId: string; comments: 
   const add = useAddComment();
   return (
     <section>
-      <h2 className="mb-2 font-display text-base font-bold text-white">Conversa</h2>
+      <h2 className="mb-2 font-display text-base font-bold text-fg">Conversa</h2>
       <div className="space-y-2">
         {comments.length === 0 ? <p className="text-sm text-dim">Nenhum comentário ainda.</p> : null}
         {comments.map((c) => (
@@ -102,10 +102,10 @@ export function CommentThread({ postId, comments }: { postId: string; comments: 
             )}
           >
             <p className="text-xs text-muted">
-              <span className="font-semibold text-white">{c.author_name}</span>
+              <span className="font-semibold text-fg">{c.author_name}</span>
               {c.author_is_staff ? ' · equipe' : ''} {c.kind !== 'comment' ? COMMENT_KIND_LABEL[c.kind] : ''} · {formatDateTime(c.created_at)}
             </p>
-            <p className="mt-1 whitespace-pre-line text-sm text-white">{c.body}</p>
+            <p className="mt-1 whitespace-pre-line text-sm text-fg">{c.body}</p>
           </div>
         ))}
       </div>

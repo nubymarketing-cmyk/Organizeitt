@@ -8,7 +8,7 @@ import { useAgencyPosts } from '../../hooks/usePosts';
 import { NETWORK_LABEL, STATUS_LABEL, formatDateTime, formatDay, monthLabel, timeAgo } from '../../lib/format';
 import type { AttentionItem } from '../../services/overview';
 import type { Network, PostStatus } from '../../types/database';
-import { Card, EmptyState, ErrorState, PageHeader, Select, Skeleton, SkeletonList, cx } from '../../components/ui';
+import { Card, Dropdown, EmptyState, ErrorState, PageHeader, Skeleton, SkeletonList, cx } from '../../components/ui';
 import { AgencyPostRow, activityText } from '../../components/AgencyParts';
 
 export function VisaoGeralPage() {
@@ -30,9 +30,9 @@ export function VisaoGeralPage() {
         <ErrorState error={overview.error} onRetry={() => overview.refetch()} />
       ) : (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <NumberCard to="/agencia/posts?filtro=aguardando" value={overview.data.awaiting} label="aguardando aprovação" tone="warn" />
-          <NumberCard to="/agencia/posts?filtro=ajustes" value={overview.data.changes} label="ajustes pedidos" tone="bad" />
-          <NumberCard to="/agencia/posts?filtro=atrasados" value={overview.data.overdue} label="posts atrasados" tone="bad" />
+          <NumberCard to="/agencia/agenda?filtro=aguardando" value={overview.data.awaiting} label="aguardando aprovação" tone="warn" />
+          <NumberCard to="/agencia/agenda?filtro=ajustes" value={overview.data.changes} label="ajustes pedidos" tone="bad" />
+          <NumberCard to="/agencia/agenda?filtro=atrasados" value={overview.data.overdue} label="posts atrasados" tone="bad" />
           <NumberCard
             to="/agencia/relatorios-pendentes"
             value={overview.data.reports_missing}
@@ -93,37 +93,43 @@ function WeekBlock() {
   return (
     <section>
       <div className="mb-3 flex items-baseline justify-between">
-        <h2 className="font-display text-lg font-bold text-white">Esta semana</h2>
-        <Link to="/agencia/calendario" className="text-xs text-lilac">
-          ver calendário
+        <h2 className="font-display text-lg font-bold text-fg">Esta semana</h2>
+        <Link to="/agencia/agenda" className="text-sm font-medium text-link hover:underline">
+          abrir agenda
         </Link>
       </div>
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Select value={clientId} onChange={(e) => setClientId(e.target.value)} className="py-2 text-xs" aria-label="Filtrar por cliente">
-          <option value="all">Todos os clientes</option>
-          {(clients.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </Select>
-        <Select value={network} onChange={(e) => setNetwork(e.target.value as Network | 'all')} className="py-2 text-xs" aria-label="Filtrar por rede">
-          <option value="all">Todas as redes</option>
-          {(Object.keys(NETWORK_LABEL) as Network[]).map((n) => (
-            <option key={n} value={n}>{NETWORK_LABEL[n]}</option>
-          ))}
-        </Select>
-        <Select value={status} onChange={(e) => setStatus(e.target.value as PostStatus | 'all')} className="py-2 text-xs" aria-label="Filtrar por status">
-          <option value="all">Todos os status</option>
-          {(Object.keys(STATUS_LABEL) as PostStatus[]).map((s) => (
-            <option key={s} value={s}>{STATUS_LABEL[s]}</option>
-          ))}
-        </Select>
-        <Select value={assignee} onChange={(e) => setAssignee(e.target.value)} className="py-2 text-xs" aria-label="Filtrar por responsável">
-          <option value="all">Todos os responsáveis</option>
-          <option value="none">Sem responsável</option>
-          {(team.data ?? []).filter((m) => !m.pending).map((m) => (
-            <option key={m.id} value={m.id}>{m.full_name}</option>
-          ))}
-        </Select>
+      <div className="mb-3 grid grid-cols-2 gap-2 xl:grid-cols-4">
+        <Dropdown
+          label="Todos os clientes"
+          allLabel="Todos os clientes"
+          value={clientId}
+          onChange={setClientId}
+          options={(clients.data ?? []).map((c) => ({ value: c.id, label: c.name, dot: c.color ?? undefined }))}
+        />
+        <Dropdown
+          label="Todas as redes"
+          allLabel="Todas as redes"
+          value={network}
+          onChange={(v) => setNetwork(v as Network | 'all')}
+          options={(Object.keys(NETWORK_LABEL) as Network[]).map((n) => ({ value: n, label: NETWORK_LABEL[n] }))}
+        />
+        <Dropdown
+          label="Todos os status"
+          allLabel="Todos os status"
+          value={status}
+          onChange={(v) => setStatus(v as PostStatus | 'all')}
+          options={(Object.keys(STATUS_LABEL) as PostStatus[]).map((st) => ({ value: st, label: STATUS_LABEL[st] }))}
+        />
+        <Dropdown
+          label="Todos os responsáveis"
+          allLabel="Todos os responsáveis"
+          value={assignee}
+          onChange={setAssignee}
+          options={[
+            { value: 'none', label: 'Sem responsável' },
+            ...(team.data ?? []).filter((m) => !m.pending).map((m) => ({ value: m.id, label: m.full_name })),
+          ]}
+        />
       </div>
 
       {posts.isLoading ? (
@@ -170,7 +176,7 @@ function attentionText(a: AttentionItem): { title: string; detail: string } {
 function AttentionBlock({ items, loading }: { items: AttentionItem[] | undefined; loading: boolean }) {
   return (
     <section>
-      <h2 className="mb-3 font-display text-lg font-bold text-white">Precisa de atenção</h2>
+      <h2 className="mb-3 font-display text-lg font-bold text-fg">Precisa de atenção</h2>
       {loading ? (
         <SkeletonList rows={2} />
       ) : !items?.length ? (
@@ -182,7 +188,7 @@ function AttentionBlock({ items, loading }: { items: AttentionItem[] | undefined
             return (
               <Link key={`${a.kind}-${a.post_id ?? a.client_id}-${i}`} to={attentionLink(a)} className="block">
                 <Card className={cx('py-3 hover:border-violet/40', a.kind === 'charge_overdue' || a.kind === 'changes_24h' ? 'border-bad/30' : 'border-warn/30')}>
-                  <p className="truncate text-sm font-semibold text-white">{t.title}</p>
+                  <p className="truncate text-sm font-semibold text-fg">{t.title}</p>
                   <p className="text-xs text-muted">{t.detail}</p>
                 </Card>
               </Link>
@@ -198,7 +204,7 @@ function ActivityBlock() {
   const activity = useActivity(20);
   return (
     <section>
-      <h2 className="mb-3 font-display text-lg font-bold text-white">Atividade recente</h2>
+      <h2 className="mb-3 font-display text-lg font-bold text-fg">Atividade recente</h2>
       {activity.isLoading ? (
         <SkeletonList rows={3} />
       ) : activity.isError ? (
@@ -210,12 +216,12 @@ function ActivityBlock() {
           {activity.data.map((a) => {
             const row = (
               <div className="px-4 py-3">
-                <p className="text-sm text-white">{activityText(a)}</p>
+                <p className="text-sm text-fg">{activityText(a)}</p>
                 <p className="text-xs text-dim">{formatDateTime(a.created_at)}</p>
               </div>
             );
             return a.post_id ? (
-              <Link key={a.id} to={`/agencia/posts/${a.post_id}`} className="block hover:bg-white/[.03]">
+              <Link key={a.id} to={`/agencia/posts/${a.post_id}`} className="block hover:bg-fg/[.03]">
                 {row}
               </Link>
             ) : (

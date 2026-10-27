@@ -77,18 +77,18 @@ export const CLIENT_STATUS_LABEL: Record<PostStatus, string> = {
 
 /** Classes de cor por status, seguindo a paleta do protótipo. */
 export const STATUS_STYLE: Record<PostStatus, string> = {
-  in_creation: 'text-dim bg-white/5 border-white/10',
-  awaiting_approval: 'text-warn bg-warn/15 border-warn/30',
-  changes_requested: 'text-bad bg-bad/15 border-bad/30',
-  approved: 'text-azure bg-azure/15 border-azure/30',
-  published: 'text-ok bg-ok/15 border-ok/30',
+  in_creation: 'text-muted bg-fg/[.05] border-fg/10',
+  awaiting_approval: 'text-warn bg-warn/10 border-warn/25',
+  changes_requested: 'text-bad bg-bad/10 border-bad/25',
+  approved: 'text-info bg-info/10 border-info/25',
+  published: 'text-ok bg-ok/10 border-ok/25',
 };
 
 export const STATUS_DOT: Record<PostStatus, string> = {
   in_creation: 'bg-dim',
   awaiting_approval: 'bg-warn',
   changes_requested: 'bg-bad',
-  approved: 'bg-azure',
+  approved: 'bg-info',
   published: 'bg-ok',
 };
 
@@ -178,4 +178,9 @@ export function formatDay(day: string): string {
 export function effectivePlan(agency: Pick<Agency, 'plan' | 'status' | 'trial_ends_at'>): AgencyPlan {
   if (agency.status === 'trial' && agency.trial_ends_at && new Date(agency.trial_ends_at) < new Date()) return 'starter';
   return agency.plan;
+}
+
+/** Primeira letra maiúscula ("estetica" -> "Estetica"), para nicho e nomes digitados. */
+export function capitalize(s: string): string {
+  return s.charAt(0).toLocaleUpperCase('pt-BR') + s.slice(1);
 }

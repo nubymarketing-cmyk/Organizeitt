@@ -52,7 +52,7 @@ export function PostDetalhePage() {
           <StatusBadge status={p.status} friendly />
           {p.current_version > 1 ? <span className="text-xs text-dim">versão {p.current_version}</span> : null}
         </div>
-        <h1 className="font-display text-2xl font-extrabold text-white">{p.title}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-fg">{p.title}</h1>
         <p className="mt-1 text-sm text-muted">
           Vai ao ar {formatDateTime(p.scheduled_at)} · {NETWORK_LABEL[p.network]}
         </p>
@@ -66,7 +66,7 @@ export function PostDetalhePage() {
         <Card className="border-violet/40 bg-violet/10">
           {asking ? (
             <div className="space-y-3">
-              <p className="font-semibold text-white">O que precisa mudar?</p>
+              <p className="font-semibold text-fg">O que precisa mudar?</p>
               <Textarea
                 autoFocus
                 placeholder="Ex.: trocar a foto da capa e deixar o texto mais curto"
@@ -100,7 +100,7 @@ export function PostDetalhePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-white">Este post está esperando o seu ok.</p>
+              <p className="text-sm text-fg">Este post está esperando o seu ok.</p>
               <InlineError error={approve.error} />
               <div className="flex gap-2">
                 <Button variant="secondary" className="flex-1" onClick={() => setAsking(true)} disabled={busy}>

@@ -1,21 +1,29 @@
+@import './theme/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --brand-from: #8b5cf6;
-  --brand-to: #3b82f6;
-}
-
 html,
 body {
-  color-scheme: dark;
-  background: #0c0b1d;
-  color: #fff;
-  font-family: Manrope, system-ui, sans-serif;
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 
 select option {
-  background: #0d0d24;
+  background: rgb(var(--surface));
+  color: rgb(var(--fg));
+}
+
+@layer utilities {
+  /* Rolagem horizontal sem a barra do navegador (abas, chips). */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }

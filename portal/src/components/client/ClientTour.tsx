@@ -32,11 +32,11 @@ export function ClientTour({ onStep, onClose }: { onStep: (tab: string) => void;
           <p className="text-xs font-semibold uppercase tracking-wider text-lilac">
             Passo {step + 1} de {TOUR_STEPS.length}
           </p>
-          <h2 className="mt-1 font-display text-xl font-extrabold text-white">{s.title}</h2>
+          <h2 className="mt-1 font-display text-xl font-extrabold text-fg">{s.title}</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">{s.text}</p>
           <div className="mt-4 flex gap-1.5">
             {TOUR_STEPS.map((_, i) => (
-              <span key={i} className={i === step ? 'h-1.5 w-6 rounded-full bg-brand' : 'h-1.5 w-1.5 rounded-full bg-white/20'} />
+              <span key={i} className={i === step ? 'h-1.5 w-6 rounded-full bg-brand' : 'h-1.5 w-1.5 rounded-full bg-fg/20'} />
             ))}
           </div>
           <div className="mt-5 flex gap-2">

@@ -30,7 +30,7 @@ export function AgencyPostRow({ post, assigneeName }: { post: PostWithClient; as
       <Card className="flex items-center gap-3 py-3 hover:border-violet/40">
         <ClientAvatar name={post.client_name} color={post.client_color} />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-white">{post.title}</p>
+          <p className="truncate font-semibold text-fg">{post.title}</p>
           <p className="truncate text-xs text-muted">
             {post.client_name} · {formatDateTime(post.scheduled_at)} · {NETWORK_LABEL[post.network]} · {FORMAT_LABEL[post.format]}
           </p>

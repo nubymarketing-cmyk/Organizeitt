@@ -8,7 +8,7 @@ export function AgencyBrand({ agency }: { agency: Agency | undefined }) {
   }
   return (
     <span className="max-w-[140px] truncate font-display text-base font-extrabold tracking-tight">
-      <span className="bg-brand bg-clip-text text-transparent">{agency.name}</span>
+      <span className="text-link">{agency.name}</span>
     </span>
   );
 }

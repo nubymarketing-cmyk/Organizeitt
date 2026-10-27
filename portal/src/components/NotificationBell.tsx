@@ -26,7 +26,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
   return (
     <div ref={box} className="relative">
       <button
-        className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-white/5 hover:text-white"
+        className="relative flex h-11 w-11 items-center justify-center rounded-full text-muted hover:bg-fg/5 hover:text-fg"
         onClick={() => setOpen(!open)}
         aria-label={unread ? `Avisos, ${unread} não lidos` : 'Avisos'}
       >
@@ -49,7 +49,7 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
           )}
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <p className="font-semibold text-white">Avisos</p>
+            <p className="font-semibold text-fg">Avisos</p>
             {unread ? (
               <button className="min-h-[32px] text-xs text-lilac" onClick={() => markRead.mutate(undefined)}>
                 marcar todos como lidos
@@ -63,14 +63,14 @@ export function NotificationBell({ align = 'right' }: { align?: 'left' | 'right'
               list.data.map((n) => (
                 <button
                   key={n.id}
-                  className={cx('block w-full border-b border-line px-4 py-3 text-left hover:bg-white/[.04]', !n.read_at && 'bg-violet/10')}
+                  className={cx('block w-full border-b border-line px-4 py-3 text-left hover:bg-fg/[.04]', !n.read_at && 'bg-violet/10')}
                   onClick={() => {
                     if (!n.read_at) markRead.mutate([n.id]);
                     setOpen(false);
                     if (n.link) navigate(n.link);
                   }}
                 >
-                  <p className="text-sm font-semibold text-white">{n.title}</p>
+                  <p className="text-sm font-semibold text-fg">{n.title}</p>
                   {n.body ? <p className="text-xs text-muted">{n.body}</p> : null}
                   <p className="mt-0.5 text-[11px] text-dim">{timeAgo(n.created_at)}</p>
                 </button>

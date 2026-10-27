@@ -36,7 +36,7 @@ export function InviteUserModal({
     <Modal open={open} onClose={close} title="Convidar usuário">
       {done ? (
         <div className="space-y-4 text-center">
-          <p className="text-white">Convite enviado para {done}.</p>
+          <p className="text-fg">Convite enviado para {done}.</p>
           <p className="text-sm text-muted">A pessoa recebe um link por e-mail e entra sem senha.</p>
           <Button className="w-full" onClick={close}>
             Fechar
@@ -88,7 +88,7 @@ export function InviteUserModal({
           ) : null}
           {form.role === 'agency_member' ? (
             <div>
-              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">Clientes que esta pessoa atende</p>
+              <p className="mb-1.5 text-sm font-medium text-fg">Clientes que esta pessoa atende</p>
               <ClientChecklist
                 clients={clients.data ?? []}
                 selected={form.assigned}
@@ -120,14 +120,14 @@ export function ClientChecklist({
   return (
     <div className="max-h-52 space-y-1 overflow-y-auto rounded-xl border border-line p-2">
       {clients.map((c) => (
-        <label key={c.id} className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg px-2 hover:bg-white/[.04]">
+        <label key={c.id} className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg px-2 hover:bg-fg/[.04]">
           <input
             type="checkbox"
             className="h-4 w-4 accent-violet"
             checked={selected.includes(c.id)}
             onChange={(e) => onChange(e.target.checked ? [...selected, c.id] : selected.filter((x) => x !== c.id))}
           />
-          <span className="text-sm text-white">{c.name}</span>
+          <span className="text-sm text-fg">{c.name}</span>
         </label>
       ))}
     </div>

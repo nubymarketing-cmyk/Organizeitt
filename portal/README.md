@@ -106,11 +106,20 @@ select cron.schedule('envio-notificacoes', '* * * * *',
 WhatsApp: configure `WHATSAPP_WEBHOOK_URL` e `WHATSAPP_TOKEN` do provedor escolhido e ajuste
 `channels/whatsapp.ts` se o formato for outro. O lembrete de 48h já roda de hora em hora pelo `pg_cron`.
 
+## Design system
+
+- Tokens em `src/theme/tokens.css` (cores, raios, sombras), tema claro e escuro (`html.dark`).
+  O Tailwind lê as cores daí (`bg-surface`, `text-fg`, `text-link`, `bg-brand`...).
+- A cor da marca vem da agência (white label) e só aparece em ações principais e estado ativo.
+- Componentes em `src/components/ui`: Button, Card, Badge, StatusChip, Tabs, Segmented,
+  Dropdown (filtros), EmptyState. Calendário com painel do dia em `PostMonthCalendar`.
+
 ## Rotas
 
 - `/login` - link mágico (e-mail)
 - `/app` - cliente: Início, `/app/calendario`, `/app/posts/:id`, `/app/relatorios`, `/app/arquivos`
-- `/agencia` - equipe: lista de clientes, `/agencia/clientes/:id`, `/agencia/posts/:id`, `/agencia/equipe`, `/agencia/configuracoes`
+- `/agencia` - visão geral; `/agencia/clientes` e `/agencia/clientes/:id` (tudo de um cliente);
+  `/agencia/agenda` (todos os clientes, calendário ou lista); `/agencia/posts/:id`; `/agencia/equipe`; `/agencia/configuracoes`
 - `/plataforma` - dono da plataforma: agências, planos e uso
 
 ## Deploy

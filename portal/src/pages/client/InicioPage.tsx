@@ -21,7 +21,7 @@ export function InicioPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-extrabold text-white">Olá, {firstName}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-fg">Olá, {firstName}</h1>
         <p className="text-sm text-muted">O que você precisa fazer agora?</p>
       </div>
 
@@ -31,8 +31,8 @@ export function InicioPage() {
         <ErrorState error={posts.error} onRetry={() => posts.refetch()} />
       ) : pending.length && canApprove ? (
         <Card className="border-violet/40 bg-violet/10 p-6 text-center">
-          <p className="font-display text-5xl font-extrabold text-white">{pending.length}</p>
-          <p className="mt-1 text-lg font-bold text-white">
+          <p className="font-display text-5xl font-extrabold text-fg">{pending.length}</p>
+          <p className="mt-1 text-lg font-bold text-fg">
             {pending.length === 1 ? 'Você tem 1 post para aprovar' : `Você tem ${pending.length} posts para aprovar`}
           </p>
           <p className="mt-1 text-sm text-muted">Leva menos de um minuto por post.</p>
@@ -42,7 +42,7 @@ export function InicioPage() {
         </Card>
       ) : (
         <Card className="p-6 text-center">
-          <p className="font-display text-2xl font-extrabold text-ok">Tudo em dia</p>
+          <p className="font-display text-2xl font-bold tracking-tight text-ok">Tudo em dia</p>
           <p className="mt-1 text-sm text-muted">
             {pending.length
               ? `${pending.length} post${pending.length > 1 ? 's esperam' : ' espera'} o ok do responsável pela clínica.`
@@ -54,7 +54,7 @@ export function InicioPage() {
       {!posts.isLoading && !posts.isError ? (
         <section>
           <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="font-display text-base font-bold text-white">Próximos posts</h2>
+            <h2 className="font-display text-base font-bold text-fg">Próximos posts</h2>
             <Link to="/app/posts" className="flex min-h-[44px] items-center text-sm text-lilac">
               ver todos
             </Link>
@@ -65,7 +65,7 @@ export function InicioPage() {
                 <Link key={p.id} to={`/app/posts/${p.id}`} className="block">
                   <Card className="flex min-h-[64px] items-center justify-between gap-3 py-3">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-white">{p.title}</p>
+                      <p className="truncate font-semibold text-fg">{p.title}</p>
                       <p className="text-xs text-muted">{formatDateTime(p.scheduled_at)}</p>
                     </div>
                     <StatusBadge status={p.status} friendly />

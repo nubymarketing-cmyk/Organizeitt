@@ -28,7 +28,7 @@ export function FolderBrowser({ clientId }: { clientId: string }) {
             <button key={f} onClick={() => setFolder(f)} className="text-left">
               <Card className="h-full hover:border-violet/40">
                 <div className="mb-3 h-8 w-10 rounded-md bg-brand opacity-80" />
-                <p className="font-semibold text-white">{FOLDER_LABEL[f]}</p>
+                <p className="font-semibold text-fg">{FOLDER_LABEL[f]}</p>
                 <p className="text-xs text-muted">{FOLDER_HINT[f]}</p>
                 <p className="mt-2 text-xs text-lilac">
                   {count} arquivo{count === 1 ? '' : 's'}
@@ -50,7 +50,7 @@ export function FolderBrowser({ clientId }: { clientId: string }) {
       </button>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-bold text-white">{FOLDER_LABEL[folder]}</h2>
+          <h2 className="font-display text-lg font-bold text-fg">{FOLDER_LABEL[folder]}</h2>
           <p className="text-xs text-muted">{FOLDER_HINT[folder]}</p>
         </div>
         <Button loading={upload.isPending} onClick={() => input.current?.click()}>
@@ -111,7 +111,7 @@ function FileRow({ file }: { file: FileRecord }) {
           {kind}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-white">{file.name}</p>
+          <p className="truncate text-sm font-semibold text-fg">{file.name}</p>
           <p className="text-xs text-muted">
             {formatDate(file.created_at)} {file.size_bytes ? `· ${formatBytes(file.size_bytes)}` : ''}
           </p>

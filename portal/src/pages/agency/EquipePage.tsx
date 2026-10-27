@@ -62,11 +62,11 @@ function MemberCard({ member, clients }: { member: TeamMember; clients: Array<{ 
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-bold text-brand-fg">
             {initials(member.full_name)}
           </div>
           <div className="min-w-0">
-            <p className="truncate font-semibold text-white">{member.full_name}</p>
+            <p className="truncate font-semibold text-fg">{member.full_name}</p>
             <p className="truncate text-xs text-muted">{member.email}</p>
           </div>
         </div>

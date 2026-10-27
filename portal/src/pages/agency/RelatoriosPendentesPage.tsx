@@ -25,7 +25,7 @@ export function RelatoriosPendentesPage() {
             <Link key={c.client_id} to={`/agencia/clientes/${c.client_id}?aba=relatorios`} className="block">
               <Card className="flex items-center gap-3 py-3 hover:border-violet/40">
                 <ClientAvatar name={c.client_name} color={c.client_color} />
-                <p className="flex-1 truncate font-semibold text-white">{c.client_name}</p>
+                <p className="flex-1 truncate font-semibold text-fg">{c.client_name}</p>
                 <span className="text-xs text-lilac">lançar ›</span>
               </Card>
             </Link>

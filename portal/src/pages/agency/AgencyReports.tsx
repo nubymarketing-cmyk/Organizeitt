@@ -44,7 +44,7 @@ export function AgencyReports({ clientId }: { clientId: string }) {
           {reports.data.map((r) => (
             <Card key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div>
-                <p className="font-semibold text-white">{monthLabel(r.month)}</p>
+                <p className="font-semibold text-fg">{monthLabel(r.month)}</p>
                 <p className="text-xs text-muted">
                   {r.contacts ?? '—'} contatos · {r.appointments ?? '—'} agendamentos {r.pdf_path ? '· com PDF' : ''}
                 </p>
@@ -131,7 +131,7 @@ function ReportForm({
   return (
     <Card className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold text-white">{report ? 'Editar relatório' : 'Lançar mês'}</h2>
+        <h2 className="font-display text-lg font-bold text-fg">{report ? 'Editar relatório' : 'Lançar mês'}</h2>
         <button className="text-sm text-lilac" onClick={onDone}>
           Cancelar
         </button>

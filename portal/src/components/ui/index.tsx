@@ -1,8 +1,18 @@
-import { useEffect, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 import type { PostStatus } from '../../types/database';
-import { CLIENT_STATUS_LABEL, STATUS_LABEL, STATUS_STYLE } from '../../lib/format';
+import { CLIENT_STATUS_LABEL, STATUS_DOT, STATUS_LABEL, STATUS_STYLE } from '../../lib/format';
 import { useSignedUrl } from '../../hooks/useSignedUrl';
 import { parseDemoMedia } from '../../services/storage';
+import { Icon, type IconName } from '../icons';
 
 export function cx(...c: Array<string | false | null | undefined>) {
   return c.filter(Boolean).join(' ');
@@ -19,33 +29,33 @@ export function Button({
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean }) {
   const styles: Record<Variant, string> = {
-    primary: 'bg-brand text-white shadow-[0_10px_30px_-12px_rgba(139,92,246,.8)]',
-    secondary: 'bg-white/[.06] text-white border border-line',
-    ghost: 'text-lilac hover:text-teal',
-    danger: 'bg-bad/15 text-bad border border-bad/30',
+    primary: 'bg-brand text-brand-fg shadow-sm hover:bg-brand/90',
+    secondary: 'bg-surface text-fg border border-line shadow-sm hover:bg-surface-2',
+    ghost: 'text-link hover:bg-fg/5',
+    danger: 'bg-bad/10 text-bad border border-bad/30 hover:bg-bad/15',
   };
   return (
     <button
       className={cx(
-        'inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-bold tracking-wide transition disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex min-h-[44px] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 disabled:cursor-not-allowed disabled:opacity-50',
         styles[variant],
         className,
       )}
       disabled={disabled || loading}
       {...rest}
     >
-      {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}
+      {loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /> : null}
       {children}
     </button>
   );
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx('rounded-2xl border border-line bg-card p-4', className)}>{children}</div>;
+  return <div className={cx('rounded-2xl border border-line bg-surface p-4 shadow-sm', className)}>{children}</div>;
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cx('animate-pulse rounded-xl bg-white/[.07]', className)} />;
+  return <div className={cx('animate-pulse rounded-xl bg-fg/[.07]', className)} />;
 }
 
 export function SkeletonList({ rows = 3 }: { rows?: number }) {
@@ -58,11 +68,14 @@ export function SkeletonList({ rows = 3 }: { rows?: number }) {
   );
 }
 
-export function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
+/** Estado vazio: ícone simples, título, orientação e uma ação clara. */
+export function EmptyState({ title, text, action, icon = 'inbox' }: { title: string; text?: string; action?: ReactNode; icon?: IconName }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line px-5 py-10 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/[.06] text-lilac">✓</div>
-      <p className="font-display text-base font-bold text-white">{title}</p>
+    <div className="rounded-2xl border border-dashed border-line bg-surface/50 px-5 py-10 text-center">
+      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand/10 text-link">
+        <Icon name={icon} />
+      </div>
+      <p className="font-display text-base font-bold text-fg">{title}</p>
       {text ? <p className="mx-auto mt-1 max-w-xs text-sm text-muted">{text}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
@@ -77,7 +90,7 @@ export function errorMessage(error: unknown): string {
 export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   return (
     <div className="rounded-2xl border border-bad/30 bg-bad/10 px-5 py-6 text-center">
-      <p className="font-semibold text-white">Não deu para carregar.</p>
+      <p className="font-semibold text-fg">Não deu para carregar.</p>
       <p className="mt-1 text-sm text-muted">{errorMessage(error)}</p>
       {onRetry ? (
         <Button variant="secondary" className="mt-4" onClick={onRetry}>
@@ -93,12 +106,170 @@ export function InlineError({ error }: { error: unknown }) {
   return <p className="rounded-lg bg-bad/10 px-3 py-2 text-sm text-bad">{errorMessage(error)}</p>;
 }
 
-/** friendly: nomes do portal do cliente ("Esperando seu ok", "Já no ar"). */
+/** Chip de status do post, com bolinha na cor do status. friendly: nomes do portal do cliente. */
 export function StatusBadge({ status, friendly }: { status: PostStatus; friendly?: boolean }) {
   return (
-    <span className={cx('inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-bold', STATUS_STYLE[status])}>
+    <span className={cx('inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold', STATUS_STYLE[status])}>
+      <span className={cx('h-1.5 w-1.5 rounded-full', STATUS_DOT[status])} aria-hidden />
       {(friendly ? CLIENT_STATUS_LABEL : STATUS_LABEL)[status]}
     </span>
+  );
+}
+
+/** Mesmo componente com o nome do design system. */
+export const StatusChip = StatusBadge;
+
+type Tone = 'neutral' | 'brand' | 'ok' | 'warn' | 'bad' | 'info';
+const TONE: Record<Tone, string> = {
+  neutral: 'bg-fg/[.06] text-muted',
+  brand: 'bg-brand/10 text-link',
+  ok: 'bg-ok/10 text-ok',
+  warn: 'bg-warn/10 text-warn',
+  bad: 'bg-bad/10 text-bad',
+  info: 'bg-info/10 text-info',
+};
+
+/** Etiqueta curta (nicho, plano, pagamento). */
+export function Badge({ tone = 'neutral', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
+  return <span className={cx('inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold', TONE[tone], className)}>{children}</span>;
+}
+
+/** Abas com rolagem horizontal limpa (sem barra nem setas do navegador). */
+export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: Array<[T, string]>; value: T; onChange: (v: T) => void }) {
+  return (
+    <div className="scrollbar-none -mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+      <div role="tablist" className="flex min-w-max gap-1 border-b border-line">
+        {tabs.map(([k, label]) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={value === k}
+            onClick={() => onChange(k)}
+            className={cx(
+              '-mb-px min-h-[44px] whitespace-nowrap border-b-2 px-4 text-sm font-semibold transition',
+              value === k ? 'border-brand text-fg' : 'border-transparent text-muted hover:text-fg',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Botões lado a lado para alternar visões (Calendário / Lista). */
+export function Segmented<T extends string>({ options, value, onChange }: { options: Array<[T, string, IconName?]>; value: T; onChange: (v: T) => void }) {
+  return (
+    <div className="inline-flex rounded-xl border border-line bg-surface p-1 shadow-sm">
+      {options.map(([k, label, icon]) => (
+        <button
+          key={k}
+          onClick={() => onChange(k)}
+          aria-pressed={value === k}
+          className={cx(
+            'inline-flex min-h-[36px] items-center gap-1.5 rounded-lg px-3 text-sm font-semibold transition',
+            value === k ? 'bg-brand text-brand-fg' : 'text-muted hover:text-fg',
+          )}
+        >
+          {icon ? <Icon name={icon} className="h-4 w-4" /> : null}
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export interface DropdownOption {
+  value: string;
+  label: string;
+  /** Bolinha de cor ao lado do nome (cliente, status). */
+  dot?: string;
+}
+
+/**
+ * Filtro em dropdown, no lugar do select nativo. Mostra o rótulo quando está no valor padrão
+ * e destaca quando há um filtro ativo.
+ */
+export function Dropdown({
+  label,
+  value,
+  options,
+  onChange,
+  allLabel,
+}: {
+  label: string;
+  value: string;
+  options: DropdownOption[];
+  onChange: (v: string) => void;
+  /** Opção "todos" (valor "all"). */
+  allLabel?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const all = allLabel ? [{ value: 'all', label: allLabel }, ...options] : options;
+  const current = all.find((o) => o.value === value);
+  const active = value !== 'all' && !!current;
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
+
+  return (
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={label}
+        onClick={() => setOpen(!open)}
+        className={cx(
+          'inline-flex min-h-[40px] w-full items-center justify-between gap-2 rounded-xl border px-3 text-sm font-medium shadow-sm transition',
+          active ? 'border-brand/40 bg-brand/10 text-fg' : 'border-line bg-surface text-muted hover:text-fg',
+        )}
+      >
+        <span className="flex min-w-0 items-center gap-2 truncate">
+          {active && current?.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: current.dot }} /> : null}
+          <span className="truncate">{active ? current.label : label}</span>
+        </span>
+        <Icon name="chevronDown" className="h-4 w-4 shrink-0" />
+      </button>
+      {open ? (
+        <div role="listbox" className="absolute left-0 z-40 mt-1 max-h-72 min-w-full overflow-y-auto rounded-xl border border-line bg-surface p-1 shadow-lg">
+          {all.map((o) => (
+            <button
+              key={o.value}
+              role="option"
+              aria-selected={o.value === value}
+              onClick={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+              className={cx(
+                'flex min-h-[40px] w-full items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm',
+                o.value === value ? 'bg-brand/10 font-semibold text-fg' : 'text-fg hover:bg-fg/5',
+              )}
+            >
+              {o.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: o.dot }} /> : <span className="w-2" />}
+              <span className="flex-1">{o.label}</span>
+              {o.value === value ? <Icon name="check" className="h-4 w-4 text-link" /> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -106,7 +277,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="font-display text-2xl font-extrabold text-white">{title}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-fg">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
       </div>
       {action}
@@ -117,7 +288,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-fg">{label}</span>
       {children}
       {hint ? <span className="mt-1 block text-xs text-dim">{hint}</span> : null}
     </label>
@@ -125,7 +296,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 const inputCls =
-  'w-full rounded-xl border border-line bg-white/[.04] px-3 py-2.5 text-sm text-white placeholder:text-dim focus:border-violet focus:outline-none';
+  'w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-fg shadow-sm placeholder:text-dim focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20';
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={cx(inputCls, props.className)} />;
@@ -136,7 +307,12 @@ export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
 }
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} className={cx(inputCls, 'bg-panel', props.className)} />;
+  return (
+    <div className="relative">
+      <select {...props} className={cx(inputCls, 'appearance-none pr-9', props.className)} />
+      <Icon name="chevronDown" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+    </div>
+  );
 }
 
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
@@ -148,18 +324,18 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-line bg-panel p-5 sm:max-w-lg sm:rounded-3xl"
+        className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-line bg-surface p-5 shadow-lg sm:max-w-lg sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-white">{title}</h2>
-          <button className="text-2xl leading-none text-muted" onClick={onClose} aria-label="Fechar">
-            ×
+          <h2 className="font-display text-lg font-bold text-fg">{title}</h2>
+          <button className="flex h-10 w-10 items-center justify-center rounded-lg text-muted hover:bg-fg/5 hover:text-fg" onClick={onClose} aria-label="Fechar">
+            <Icon name="x" />
           </button>
         </div>
         {children}
@@ -187,7 +363,7 @@ export function MediaView({ path, className }: { path: string; className?: strin
   }
   if (url.isLoading) return <Skeleton className={className} />;
   if (!url.data) {
-    return <div className={cx('flex items-center justify-center bg-white/5 text-xs text-dim', className)}>mídia indisponível</div>;
+    return <div className={cx('flex items-center justify-center bg-fg/5 text-xs text-dim', className)}>mídia indisponível</div>;
   }
   const isVideo = /\.(mp4|mov|webm|m4v)$/i.test(path);
   return isVideo ? (
@@ -224,8 +400,8 @@ export function ConfirmButton({
     );
   }
   return (
-    <div className="w-full space-y-2 rounded-xl border border-line bg-white/[.04] p-3">
-      <p className="text-sm text-white">{question}</p>
+    <div className="w-full space-y-2 rounded-xl border border-line bg-fg/[.04] p-3">
+      <p className="text-sm text-fg">{question}</p>
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => setAsking(false)}>
           Cancelar

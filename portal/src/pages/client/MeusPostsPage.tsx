@@ -57,14 +57,14 @@ export function MeusPostsPage() {
 function Group({ title, posts, empty, children }: { title: string; posts: Post[]; empty?: string; children?: ReactNode }) {
   return (
     <section>
-      <h2 className="mb-2 font-display text-base font-bold text-white">{title}</h2>
+      <h2 className="mb-2 font-display text-base font-bold text-fg">{title}</h2>
       {posts.length ? (
         <div className="space-y-2">
           {posts.map((p) => (
             <Link key={p.id} to={`/app/posts/${p.id}`} className="block">
               <Card className="flex min-h-[64px] items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-white">{p.title}</p>
+                  <p className="truncate font-semibold text-fg">{p.title}</p>
                   <p className="text-xs text-muted">
                     {formatDateTime(p.scheduled_at)} · {NETWORK_LABEL[p.network]}
                   </p>

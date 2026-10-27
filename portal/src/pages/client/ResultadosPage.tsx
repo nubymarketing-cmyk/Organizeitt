@@ -51,7 +51,7 @@ function MonthResults({ reports, selected, onSelect }: { reports: Report[]; sele
               onClick={() => onSelect(r.id)}
               className={cx(
                 'min-h-[44px] whitespace-nowrap rounded-full border px-4 text-sm font-bold',
-                r.id === selected.id ? 'border-transparent bg-brand text-white' : 'border-line text-muted',
+                r.id === selected.id ? 'border-transparent bg-brand text-brand-fg' : 'border-line text-muted',
               )}
             >
               {monthLabel(r.month)}
@@ -60,7 +60,7 @@ function MonthResults({ reports, selected, onSelect }: { reports: Report[]; sele
         </div>
       ) : null}
 
-      <h2 className="font-display text-lg font-bold text-white">{monthLabel(selected.month)}</h2>
+      <h2 className="font-display text-lg font-bold text-fg">{monthLabel(selected.month)}</h2>
 
       <div className="space-y-3">
         {NUMBERS.map((n) => (
@@ -71,7 +71,7 @@ function MonthResults({ reports, selected, onSelect }: { reports: Report[]; sele
       {selected.notes ? (
         <Card className="border-violet/40 bg-violet/10">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-lilac">O que a equipe diz</p>
-          <p className="whitespace-pre-line text-base leading-relaxed text-white">{selected.notes}</p>
+          <p className="whitespace-pre-line text-base leading-relaxed text-fg">{selected.notes}</p>
         </Card>
       ) : null}
 
@@ -90,11 +90,11 @@ function BigNumber({ label, value, before }: { label: string; value: number | nu
     <Card className="flex items-center justify-between gap-4 p-5">
       <div>
         <p className="text-sm text-muted">{label}</p>
-        <p className="font-display text-4xl font-extrabold text-white">{formatNumber(value)}</p>
+        <p className="font-display text-4xl font-extrabold text-fg">{formatNumber(value)}</p>
       </div>
       {diff !== null ? (
         <div className={cx('text-right', up ? 'text-ok' : down ? 'text-bad' : 'text-muted')}>
-          <p className="font-display text-2xl font-extrabold">
+          <p className="font-display text-2xl font-bold tracking-tight">
             {up ? '↑' : down ? '↓' : '='} {Math.abs(diff)}%
           </p>
           <p className="text-xs">{up ? 'a mais que' : down ? 'a menos que' : 'igual ao'} mês anterior</p>

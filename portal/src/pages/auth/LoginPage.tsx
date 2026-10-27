@@ -35,21 +35,19 @@ export function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-night px-5 py-10">
-      <div className="pointer-events-none absolute -left-20 top-10 h-96 w-96 rounded-full bg-violet/35 blur-[80px]" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-azure/25 blur-[80px]" />
 
       <div className="relative w-full max-w-sm">
         <div className="mb-10 text-center">
           <Logo />
-          <p className="mt-3 font-display text-xl font-bold text-white">Portal do cliente</p>
+          <p className="mt-3 font-display text-xl font-bold text-fg">Portal do cliente</p>
           <p className="mt-1 text-sm text-muted">Calendário, aprovações, relatórios e arquivos num lugar só.</p>
         </div>
 
         {sentTo ? (
           <div className="rounded-2xl border border-line bg-card p-5 text-center">
-            <p className="font-semibold text-white">Confira seu e-mail</p>
+            <p className="font-semibold text-fg">Confira seu e-mail</p>
             <p className="mt-1 text-sm text-muted">
-              Se <span className="text-white">{sentTo}</span> tiver convite, o link de acesso chega em instantes.
+              Se <span className="text-fg">{sentTo}</span> tiver convite, o link de acesso chega em instantes.
             </p>
             {IS_DEMO ? (
               <>
@@ -120,9 +118,9 @@ export function LoginPage() {
                 <button
                   key={u.id}
                   onClick={() => enter(u.email)}
-                  className="flex w-full items-center justify-between rounded-xl bg-white/[.04] px-3 py-2 text-left text-sm hover:bg-white/[.08]"
+                  className="flex w-full items-center justify-between rounded-xl bg-fg/[.04] px-3 py-2 text-left text-sm hover:bg-fg/[.08]"
                 >
-                  <span className="text-white">{u.full_name}</span>
+                  <span className="text-fg">{u.full_name}</span>
                   <span className="text-xs text-muted">{ROLE_LABEL[u.role]}</span>
                 </button>
               ))}

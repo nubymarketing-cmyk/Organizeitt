@@ -8,7 +8,7 @@ import type { Agency } from '../../types/database';
 import { Button, Card, EmptyState, ErrorState, Field, InlineError, Input, PageHeader, Skeleton } from '../../components/ui';
 import { AgencyBrand } from '../../components/layout/AgencyBrand';
 
-const DEFAULT_COLOR = '#8B5CF6';
+const DEFAULT_COLOR = '#0E7C6B';
 
 export function ConfiguracoesPage() {
   const { data: profile } = useSession();
@@ -57,7 +57,7 @@ export function BrandingForm({ agency, onSaved, saveLabel = 'Salvar marca' }: { 
 
   return (
     <Card className="space-y-4">
-      <h2 className="font-display text-lg font-bold text-white">Marca no portal do cliente</h2>
+      <h2 className="font-display text-lg font-bold text-fg">Marca no portal do cliente</h2>
 
       <Field label="Nome da agência">
         <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -77,7 +77,7 @@ export function BrandingForm({ agency, onSaved, saveLabel = 'Salvar marca' }: { 
       </Field>
 
       <div>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">Logo</p>
+        <p className="mb-1.5 text-sm font-medium text-fg">Logo</p>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={() => fileInput.current?.click()}>
             {agency.logo_url || logo ? 'Trocar logo' : 'Enviar logo'}
@@ -112,8 +112,8 @@ export function BrandingForm({ agency, onSaved, saveLabel = 'Salvar marca' }: { 
       </div>
 
       <div>
-        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted">Prévia</p>
-        <div className="rounded-2xl border border-line bg-night p-4" style={brandStyle(validColor ? color : null)}>
+        <p className="mb-1.5 text-sm font-medium text-fg">Prévia</p>
+        <div className="brand-scope rounded-2xl border border-line bg-night p-4" style={brandStyle(validColor ? color : null)}>
           <div className="flex items-center justify-between">
             <AgencyBrand agency={previewAgency} />
             <span className="text-xs text-muted">Sair</span>
@@ -156,17 +156,17 @@ function PlanCard({ agency }: { agency: Agency }) {
 
   return (
     <Card className="space-y-3">
-      <h2 className="font-display text-lg font-bold text-white">Plano</h2>
+      <h2 className="font-display text-lg font-bold text-fg">Plano</h2>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-brand px-3 py-1 text-sm font-bold text-white">{PLAN_LABEL[agency.plan]}</span>
-        <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-bold text-muted">{AGENCY_STATUS_LABEL[agency.status]}</span>
+        <span className="rounded-full bg-brand px-3 py-1 text-sm font-bold text-brand-fg">{PLAN_LABEL[agency.plan]}</span>
+        <span className="rounded-full bg-fg/5 px-3 py-1 text-xs font-bold text-muted">{AGENCY_STATUS_LABEL[agency.status]}</span>
       </div>
       {trialOver ? (
         <p className="text-sm text-warn">O teste acabou. Até o pagamento ser ligado, vale o limite do plano Starter.</p>
       ) : agency.status === 'trial' && agency.trial_ends_at ? (
         <p className="text-sm text-muted">Período de teste até {formatDate(agency.trial_ends_at)}.</p>
       ) : null}
-      <p className="text-sm text-white">
+      <p className="text-sm text-fg">
         {limit === null ? `${used} clientes ativos, sem limite no seu plano.` : `${used} de ${limit} clientes ativos usados.`}
       </p>
       {limit !== null && used >= limit ? (

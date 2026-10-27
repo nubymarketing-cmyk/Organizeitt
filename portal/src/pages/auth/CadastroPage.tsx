@@ -25,21 +25,19 @@ export function CadastroPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-night px-5 py-10">
-      <div className="pointer-events-none absolute -left-20 top-10 h-96 w-96 rounded-full bg-violet/35 blur-[80px]" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-azure/25 blur-[80px]" />
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 text-center">
           <Logo />
-          <p className="mt-3 font-display text-xl font-bold text-white">Crie a conta da sua agência</p>
+          <p className="mt-3 font-display text-xl font-bold text-fg">Crie a conta da sua agência</p>
           <p className="mt-1 text-sm text-muted">14 dias grátis no plano Pro. Sem cartão.</p>
         </div>
 
         {confirmTo ? (
           <div className="rounded-2xl border border-line bg-card p-5 text-center">
-            <p className="font-semibold text-white">Confirme seu e-mail</p>
+            <p className="font-semibold text-fg">Confirme seu e-mail</p>
             <p className="mt-1 text-sm text-muted">
-              Mandamos um link para <span className="text-white">{confirmTo}</span>. Clique nele para entrar e configurar a agência.
+              Mandamos um link para <span className="text-fg">{confirmTo}</span>. Clique nele para entrar e configurar a agência.
             </p>
             <Link to="/login" className="mt-4 block text-sm text-lilac">
               Ir para o login

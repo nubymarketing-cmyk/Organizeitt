@@ -42,15 +42,15 @@ export function BoasVindasPage() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-extrabold text-white">Boas-vindas, {agency.data.name}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-fg">Boas-vindas, {agency.data.name}</h1>
         <p className="text-sm text-muted">Três passos rápidos para deixar o portal pronto para suas clínicas.</p>
       </div>
 
       <ol className="flex gap-2">
         {STEPS.map((label, i) => (
           <li key={label} className="flex-1">
-            <div className={cx('h-1.5 rounded-full', i <= step ? 'bg-brand' : 'bg-white/10')} />
-            <p className={cx('mt-1.5 text-xs', i === step ? 'font-semibold text-white' : 'text-dim')}>
+            <div className={cx('h-1.5 rounded-full', i <= step ? 'bg-brand' : 'bg-fg/10')} />
+            <p className={cx('mt-1.5 text-xs', i === step ? 'font-semibold text-fg' : 'text-dim')}>
               {i + 1}. {label}
             </p>
           </li>
@@ -95,7 +95,7 @@ function FirstClient({ onCreated }: { onCreated: (c: { id: string; name: string 
           create.mutate(form, { onSuccess: (c) => onCreated({ id: c.id, name: c.name }) });
         }}
       >
-        <h2 className="font-display text-lg font-bold text-white">Cadastre a primeira clínica</h2>
+        <h2 className="font-display text-lg font-bold text-fg">Cadastre a primeira clínica</h2>
         <Field label="Nome da clínica">
           <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoFocus />
         </Field>
@@ -133,7 +133,7 @@ function InviteClinic({ client, onDone }: { client: { id: string; name: string }
           invite.mutate({ ...form, role: 'client_owner', client_id: client.id }, { onSuccess: onDone });
         }}
       >
-        <h2 className="font-display text-lg font-bold text-white">Convide o responsável pela {client.name}</h2>
+        <h2 className="font-display text-lg font-bold text-fg">Convide o responsável pela {client.name}</h2>
         <p className="text-sm text-muted">A pessoa recebe um link por e-mail e entra sem senha, já na área da clínica.</p>
         <Field label="Nome">
           <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required autoFocus />

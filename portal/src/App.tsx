@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AgencyLayout } from './components/layout/AgencyLayout';
 import { ClientLayout } from './components/layout/ClientLayout';
 import { HomeRedirect, RequireAuth } from './components/layout/RequireAuth';
@@ -17,8 +17,7 @@ import { ClienteDetalhePage } from './pages/agency/ClienteDetalhePage';
 import { PostEditorPage } from './pages/agency/PostEditorPage';
 import { EquipePage } from './pages/agency/EquipePage';
 import { VisaoGeralPage } from './pages/agency/VisaoGeralPage';
-import { PostsGeralPage } from './pages/agency/PostsGeralPage';
-import { CalendarioGeralPage } from './pages/agency/CalendarioGeralPage';
+import { AgendaPage } from './pages/agency/AgendaPage';
 import { RelatoriosPendentesPage } from './pages/agency/RelatoriosPendentesPage';
 import { ConfiguracoesPage } from './pages/agency/ConfiguracoesPage';
 import { PlataformaPage } from './pages/platform/PlataformaPage';
@@ -51,8 +50,10 @@ export function App() {
           <Route path="/agencia">
             <Route index element={<VisaoGeralPage />} />
             <Route path="clientes" element={<ClientesPage />} />
-            <Route path="posts" element={<PostsGeralPage />} />
-            <Route path="calendario" element={<CalendarioGeralPage />} />
+            <Route path="agenda" element={<AgendaPage />} />
+            {/* Endereços antigos: calendário e lista gerais viraram a Agenda */}
+            <Route path="posts" element={<ToAgenda view="lista" />} />
+            <Route path="calendario" element={<ToAgenda />} />
             <Route path="relatorios-pendentes" element={<RelatoriosPendentesPage />} />
             <Route path="clientes/:clientId" element={<ClienteDetalhePage />} />
             <Route path="clientes/:clientId/posts/novo" element={<PostEditorPage />} />
@@ -68,4 +69,13 @@ export function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
+}
+
+/** Redireciona para a Agenda mantendo os filtros da URL antiga. */
+function ToAgenda({ view }: { view?: 'lista' }) {
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  if (view) params.set('visao', view);
+  const q = params.toString();
+  return <Navigate to={`/agencia/agenda${q ? `?${q}` : ''}`} replace />;
 }

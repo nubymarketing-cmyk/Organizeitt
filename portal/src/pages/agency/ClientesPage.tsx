@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSession } from '../../hooks/useAuth';
 import { useClients, useCreateClient } from '../../hooks/useClients';
-import { Button, Card, EmptyState, ErrorState, Field, InlineError, Input, Modal, PageHeader, SkeletonList, cx } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, ErrorState, Field, InlineError, Input, Modal, PageHeader, SkeletonList, cx } from '../../components/ui';
+import { capitalize } from '../../lib/format';
 import { InviteUserModal } from '../../components/InviteUserModal';
 import { ClientAvatar } from '../../components/AgencyParts';
 import type { ClientWithCounts, PaymentStatus } from '../../services/clients';
@@ -103,8 +104,8 @@ function NewClientModal({ open, onClose }: { open: boolean; onClose: () => void 
 }
 
 const PAYMENT: Record<PaymentStatus, { label: string; cls: string }> = {
-  none: { label: 'sem cobrança', cls: 'bg-white/5 text-dim' },
-  open: { label: 'mensalidade a vencer', cls: 'bg-white/5 text-muted' },
+  none: { label: 'sem cobrança', cls: 'bg-fg/5 text-dim' },
+  open: { label: 'mensalidade a vencer', cls: 'bg-fg/5 text-muted' },
   paid: { label: 'pagamento em dia', cls: 'bg-ok/15 text-ok' },
   overdue: { label: 'mensalidade vencida', cls: 'bg-bad/15 text-bad' },
 };
@@ -118,8 +119,8 @@ function ClientCard({ client: c, showPayment }: { client: ClientWithCounts; show
         <div className="flex items-center gap-3">
           <ClientAvatar name={c.name} color={c.color} />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold text-white">{c.name}</p>
-            <p className="text-xs text-muted">{c.specialty ?? 'sem especialidade'}</p>
+            <p className="truncate font-semibold text-fg">{c.name}</p>
+            {c.specialty ? <Badge tone="brand" className="mt-0.5">{capitalize(c.specialty)}</Badge> : <p className="text-xs text-dim">Nicho não informado</p>}
           </div>
           <span className={cx('rounded-full px-2.5 py-1 text-xs font-bold', late ? 'bg-bad/15 text-bad' : 'bg-ok/15 text-ok')}>
             {late ? 'atrasado' : 'em dia'}
@@ -129,11 +130,11 @@ function ClientCard({ client: c, showPayment }: { client: ClientWithCounts; show
         <div className="mt-4">
           <div className="flex justify-between text-xs">
             <span className="text-muted">Posts do mês</span>
-            <span className="font-semibold text-white">
+            <span className="font-semibold text-fg">
               {c.month_published} publicado{c.month_published === 1 ? '' : 's'} de {c.month_planned}
             </span>
           </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-fg/10">
             <div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} />
           </div>
         </div>
@@ -142,7 +143,7 @@ function ClientCard({ client: c, showPayment }: { client: ClientWithCounts; show
           {c.awaiting_count ? <span className="rounded-full bg-warn/15 px-2.5 py-1 text-warn">{c.awaiting_count} aguardando</span> : null}
           {c.changes_count ? <span className="rounded-full bg-bad/15 px-2.5 py-1 text-bad">{c.changes_count} com ajuste</span> : null}
           {late ? <span className="rounded-full bg-bad/15 px-2.5 py-1 text-bad">{c.overdue_count} atrasado{c.overdue_count === 1 ? '' : 's'}</span> : null}
-          {!c.awaiting_count && !c.changes_count && !late ? <span className="rounded-full bg-white/5 px-2.5 py-1 text-dim">sem pendências</span> : null}
+          {!c.awaiting_count && !c.changes_count && !late ? <span className="rounded-full bg-fg/5 px-2.5 py-1 text-dim">sem pendências</span> : null}
           {showPayment ? <span className={cx('rounded-full px-2.5 py-1', PAYMENT[c.payment_status].cls)}>{PAYMENT[c.payment_status].label}</span> : null}
         </div>
       </Card>

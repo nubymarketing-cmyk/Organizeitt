@@ -33,7 +33,7 @@ export function ReportIndicators({ report, previous, compact }: { report: Report
         const good = variation === null ? null : ind.lowerIsBetter ? variation < 0 : variation > 0;
         return (
           <div key={ind.key} className="rounded-2xl border border-line bg-card p-3.5">
-            <p className="font-display text-2xl font-extrabold text-white">
+            <p className="font-display text-2xl font-bold tracking-tight text-fg">
               {ind.money ? formatCurrency(value) : formatNumber(value)}
             </p>
             <p className="text-xs text-muted">{ind.label}</p>

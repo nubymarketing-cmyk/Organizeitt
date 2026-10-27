@@ -26,7 +26,7 @@ export function AprovarPage() {
   if (profile && profile.role !== 'client_owner') return <Navigate to="/app/posts" replace />;
 
   return (
-    <div className="min-h-screen bg-night" style={brandStyle(agency.data?.primary_color)}>
+    <div className="brand-scope min-h-screen bg-night" style={brandStyle(agency.data?.primary_color)}>
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-4 pb-8 pt-4">
         <header className="mb-4 flex items-center justify-between">
           <Link to="/app" className="flex min-h-[44px] items-center text-sm text-lilac">
@@ -87,7 +87,7 @@ function ReviewOne({ postId, onNext, onSkip }: { postId: string; onNext: (kind: 
   if (p.status !== 'awaiting_approval') {
     return (
       <div className="space-y-4 text-center">
-        <p className="text-white">Este post já foi revisado.</p>
+        <p className="text-fg">Este post já foi revisado.</p>
         <Button className="w-full" onClick={onSkip}>
           Próximo
         </Button>
@@ -100,7 +100,7 @@ function ReviewOne({ postId, onNext, onSkip }: { postId: string; onNext: (kind: 
     <div className="flex flex-1 flex-col gap-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-lilac">Vai ao ar {formatDateTime(p.scheduled_at)}</p>
-        <h1 className="font-display text-xl font-extrabold text-white">{p.title}</h1>
+        <h1 className="font-display text-xl font-extrabold text-fg">{p.title}</h1>
       </div>
 
       <InstagramPreview clientName={client.data?.name ?? ''} media={current?.media ?? []} caption={current?.caption ?? p.caption ?? ''} />
@@ -108,7 +108,7 @@ function ReviewOne({ postId, onNext, onSkip }: { postId: string; onNext: (kind: 
       <div className="mt-auto space-y-3 pt-2">
         {asking ? (
           <>
-            <p className="font-semibold text-white">O que você quer mudar?</p>
+            <p className="font-semibold text-fg">O que você quer mudar?</p>
             <Textarea
               autoFocus
               placeholder="Ex.: trocar a foto e deixar o texto mais curto"
@@ -154,7 +154,7 @@ function Finished({ approved, changes, empty }: { approved: number; changes: num
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ok/15 text-3xl text-ok">✓</div>
-      <h1 className="font-display text-2xl font-extrabold text-white">{empty ? 'Nada para aprovar' : 'Pronto, você revisou tudo'}</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-fg">{empty ? 'Nada para aprovar' : 'Pronto, você revisou tudo'}</h1>
       <p className="text-sm text-muted">
         {empty
           ? 'Quando a equipe mandar um post novo, ele aparece aqui.'
