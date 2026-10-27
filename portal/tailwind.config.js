@@ -17,6 +17,7 @@ export default {
         'brand-fg': token('brand-fg'),
         link: token('link'),
         info: token('info'),
+        popover: token('popover'),
         // Nomes antigos, mantidos para as telas existentes, agora seguindo o tema
         night: token('bg'),
         panel: token('surface'),

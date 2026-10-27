@@ -19,6 +19,9 @@
   --brand-fg: 255 255 255;
   --link: var(--brand);
 
+  /* Menus (dropdowns): sempre opacos */
+  --popover: 255 255 255;
+
   /* Status */
   --ok: 21 128 61;
   --warn: 180 83 9;
@@ -46,6 +49,8 @@ html.dark {
   --dim: 134 140 149;
 
   --link: var(--brand-soft);
+
+  --popover: 31 31 35;
 
   --ok: 74 222 128;
   --warn: 245 181 68;

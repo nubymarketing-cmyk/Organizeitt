@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -10,6 +11,7 @@ import {
 } from 'react';
 import type { PostStatus } from '../../types/database';
 import { CLIENT_STATUS_LABEL, STATUS_DOT, STATUS_LABEL, STATUS_STYLE } from '../../lib/format';
+import { createPortal } from 'react-dom';
 import { useSignedUrl } from '../../hooks/useSignedUrl';
 import { parseDemoMedia } from '../../services/storage';
 import { Icon, type IconName } from '../icons';
@@ -215,10 +217,29 @@ export interface DropdownOption {
   dot?: string;
 }
 
+/** Altura de uma opção e quantas cabem antes de aparecer rolagem. */
+const OPTION_H = 40;
+const MAX_VISIBLE = 8;
+const FADE_MS = 160;
+/** Variáveis da marca copiadas para o menu, que fica fora da área com white label. */
+const BRAND_VARS = ['--brand', '--brand-soft', '--brand-fg', '--link'];
+
+interface MenuPos {
+  sheet: boolean;
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  maxHeight: number;
+}
+
 /**
  * Dropdown no lugar do select nativo.
  * Filtro (padrão): mostra o rótulo no valor "all" e fica destacado quando há filtro ativo.
  * Campo (field): sempre mostra a opção escolhida, ou o placeholder, como um input de formulário.
+ *
+ * A lista e o fundo escuro são desenhados direto no <body> (portal): nenhum card ou conteúdo
+ * da página consegue ficar por cima. No celular a lista abre como gaveta na parte de baixo.
  */
 export function Dropdown({
   label,
@@ -241,47 +262,96 @@ export function Dropdown({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const box = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [pos, setPos] = useState<MenuPos | null>(null);
+  const [brandVars, setBrandVars] = useState<Record<string, string>>({});
+  const trigger = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+
   const all = allLabel ? [{ value: 'all', label: allLabel }, ...options] : options;
   const current = all.find((o) => o.value === value);
   const active = field ? false : value !== 'all' && !!current;
   const shown = field ? (current?.label ?? placeholder ?? label) : active ? current!.label : label;
 
+  // Abre e fecha com fade: monta, mostra no próximo quadro; ao fechar, some e desmonta.
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      const id = requestAnimationFrame(() => setVisible(true));
+      return () => cancelAnimationFrame(id);
+    }
+    setVisible(false);
+    const t = setTimeout(() => setMounted(false), FADE_MS);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  // Posição presa ao botão; acompanha rolagem e mudança de tamanho da janela.
+  useEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const el = trigger.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const sheet = !window.matchMedia('(min-width: 640px)').matches;
+      const wanted = Math.min(all.length, MAX_VISIBLE) * OPTION_H + 12;
+      const below = window.innerHeight - r.bottom - 12;
+      const above = r.top - 12;
+      const up = below < Math.min(wanted, 200) && above > below;
+      setPos({
+        sheet,
+        left: r.left,
+        width: r.width,
+        top: up ? undefined : r.bottom + 6,
+        bottom: up ? window.innerHeight - r.top + 6 : undefined,
+        maxHeight: sheet ? Math.round(window.innerHeight * 0.7) : Math.min(MAX_VISIBLE * OPTION_H + 12, up ? above : below),
+      });
+    };
+    place();
+    const style = trigger.current ? getComputedStyle(trigger.current) : null;
+    setBrandVars(Object.fromEntries(BRAND_VARS.map((v) => [v, style?.getPropertyValue(v).trim() ?? '']).filter(([, val]) => val)));
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, all.length]);
+
+  // Esc fecha e devolve o foco ao botão.
+  useEffect(() => {
+    if (!open) return;
+    const esc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // Fecha só a lista, sem fechar uma janela (Modal) que esteja por baixo.
+      e.stopPropagation();
+      close();
+    };
+    document.addEventListener('keydown', esc);
+    return () => document.removeEventListener('keydown', esc);
+  }, [open]);
+
   // Setas movem entre as opções; a lista abre focando a opção escolhida.
   const focusOption = (dir: 1 | -1 | 0) => {
-    const items = Array.from(box.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
+    const items = Array.from(list.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
     if (!items.length) return;
     const i = items.findIndex((el) => el === document.activeElement);
     const start = i === -1 ? Math.max(0, items.findIndex((el) => el.getAttribute('aria-selected') === 'true')) : i;
     items[dir === 0 ? start : (start + dir + items.length) % items.length]?.focus();
   };
   useEffect(() => {
-    if (open) requestAnimationFrame(() => focusOption(0));
-  }, [open]);
+    if (visible) focusOption(0);
+  }, [visible]);
 
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent) => {
-      if (box.current && !box.current.contains(e.target as Node)) setOpen(false);
-    };
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    document.addEventListener('keydown', esc);
-    return () => {
-      document.removeEventListener('mousedown', close);
-      document.removeEventListener('keydown', esc);
-    };
-  }, [open]);
+  const close = () => {
+    setOpen(false);
+    trigger.current?.focus();
+  };
 
   return (
-    <div ref={box} className={cx('relative', open && 'z-50')}>
-      {open ? (
-        // Fundo levemente escurecido: o que está atrás da lista não disputa a leitura.
-        <div className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[3px] sm:bg-black/15" aria-hidden onMouseDown={() => setOpen(false)} />
-      ) : null}
+    <div className="relative min-w-0">
       <button
+        ref={trigger}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -296,59 +366,79 @@ export function Dropdown({
         }}
         className={cx(
           'inline-flex w-full items-center justify-between gap-2 rounded-xl border px-3 text-sm shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60',
-          // Só o filtro aberto fica acima do fundo desfocado.
-          open && 'relative z-50',
           field ? 'min-h-[44px] border-line bg-surface text-fg' : 'min-h-[40px] font-medium',
           !field && (active ? 'border-brand/40 bg-brand/10 text-fg' : 'border-line bg-surface text-muted hover:text-fg'),
           field && !current && 'text-dim',
+          open && 'ring-2 ring-brand/30',
         )}
       >
         <span className="flex min-w-0 items-center gap-2 truncate">
           {(field || active) && current?.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: current.dot }} /> : null}
           <span className="truncate">{shown}</span>
         </span>
-        <Icon name="chevronDown" className="h-4 w-4 shrink-0" />
+        <Icon name="chevronDown" className={cx('h-4 w-4 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
-      {open ? (
-        <div
-          role="listbox"
-          aria-label={label}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-              e.preventDefault();
-              focusOption(e.key === 'ArrowDown' ? 1 : -1);
-            }
-          }}
-          className={cx(
-            'z-50 overflow-y-auto border border-line bg-surface p-1 shadow-lg',
-            // Celular: gaveta na parte de baixo da tela. Computador: lista logo abaixo do botão.
-            'fixed inset-x-0 bottom-0 max-h-[70vh] rounded-t-2xl pb-[calc(0.5rem+env(safe-area-inset-bottom))]',
-            'sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:mt-1 sm:max-h-72 sm:min-w-full sm:rounded-xl sm:pb-1',
-          )}
-        >
-          <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted sm:hidden">{label}</p>
-          {all.map((o) => (
-            <button
-              key={o.value}
-              role="option"
-              aria-selected={o.value === value}
-              onClick={() => {
-                onChange(o.value);
-                setOpen(false);
-                box.current?.querySelector<HTMLButtonElement>('button')?.focus();
-              }}
-              className={cx(
-                'flex min-h-[40px] w-full items-center gap-2 whitespace-nowrap rounded-lg px-3 text-left text-sm outline-none focus-visible:bg-fg/5',
-                o.value === value ? 'bg-brand/10 font-semibold text-fg' : 'text-fg hover:bg-fg/5',
-              )}
-            >
-              {o.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: o.dot }} /> : <span className="w-2" />}
-              <span className="flex-1">{o.label}</span>
-              {o.value === value ? <Icon name="check" className="h-4 w-4 text-link" /> : null}
-            </button>
-          ))}
-        </div>
-      ) : null}
+
+      {mounted && pos
+        ? createPortal(
+            <>
+              {/* Fundo escuro: acima da página, abaixo do menu. Clicar fecha. */}
+              <div
+                aria-hidden
+                onMouseDown={close}
+                className={cx('fixed inset-0 z-[90] bg-black/40 transition-opacity duration-150', visible ? 'opacity-100' : 'opacity-0')}
+              />
+              <div
+                ref={list}
+                role="listbox"
+                aria-label={label}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    focusOption(e.key === 'ArrowDown' ? 1 : -1);
+                  }
+                }}
+                style={
+                  {
+                    ...brandVars,
+                    maxHeight: pos.maxHeight,
+                    ...(pos.sheet ? {} : { left: pos.left, minWidth: pos.width, top: pos.top, bottom: pos.bottom }),
+                  } as CSSProperties
+                }
+                className={cx(
+                  'fixed z-[100] overflow-y-auto border border-line bg-popover p-1.5 shadow-lg transition duration-150',
+                  pos.sheet
+                    ? 'inset-x-0 bottom-0 rounded-t-2xl pb-[calc(0.5rem+env(safe-area-inset-bottom))]'
+                    : 'max-w-[calc(100vw-16px)] rounded-lg',
+                  visible ? 'translate-y-0 opacity-100' : pos.sheet ? 'translate-y-4 opacity-0' : '-translate-y-1 opacity-0',
+                )}
+              >
+                {pos.sheet ? <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">{label}</p> : null}
+                {all.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    role="option"
+                    aria-selected={o.value === value}
+                    onClick={() => {
+                      onChange(o.value);
+                      close();
+                    }}
+                    className={cx(
+                      'flex h-10 w-full items-center gap-2 whitespace-nowrap rounded-md px-3 text-left text-sm text-fg outline-none transition-colors',
+                      o.value === value ? 'bg-brand/15 font-semibold' : 'hover:bg-fg/[.06] focus-visible:bg-fg/[.06]',
+                    )}
+                  >
+                    {o.dot ? <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: o.dot }} /> : <span className="w-2" />}
+                    <span className="flex-1">{o.label}</span>
+                    {o.value === value ? <Icon name="check" className="h-4 w-4 text-link" /> : null}
+                  </button>
+                ))}
+              </div>
+            </>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -42,9 +42,9 @@ export function VisaoGeralPage() {
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <WeekBlock />
-        <div className="space-y-8">
+        <div className="min-w-0 space-y-8">
           <AttentionBlock items={overview.data?.attention} loading={overview.isLoading} />
           <ActivityBlock />
         </div>
@@ -91,7 +91,7 @@ function WeekBlock() {
   const filtered = clientId !== 'all' || network !== 'all' || status !== 'all' || assignee !== 'all';
 
   return (
-    <section>
+    <section className="min-w-0">
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="font-display text-lg font-bold text-fg">Esta semana</h2>
         <Link to="/agencia/agenda" className="text-sm font-medium text-link hover:underline">
