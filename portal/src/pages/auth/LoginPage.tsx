@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { useOpenMagicLinkDemo, usePasswordSignIn, useSendMagicLink, useSession } from '../../hooks/useAuth';
+import { useOpenMagicLinkDemo, usePasswordSignIn, useSendMagicLink, useSession, useVerifyEmailCode } from '../../hooks/useAuth';
 import { ROLE_LABEL } from '../../lib/format';
 import { isStaffRole } from '../../lib/roles';
 import { IS_DEMO, listDemoUsers, resetDemo } from '../../services/auth';
@@ -19,6 +19,8 @@ export function LoginPage() {
   const [mode, setMode] = useState<'link' | 'senha'>('link');
   const [password, setPassword] = useState('');
   const passwordSignIn = usePasswordSignIn();
+  const verifyCode = useVerifyEmailCode();
+  const [code, setCode] = useState('');
 
   if (session.data) return <Navigate to={isStaffRole(session.data.role) ? '/agencia' : '/app'} replace />;
 
@@ -49,6 +51,34 @@ export function LoginPage() {
             <p className="mt-1 text-sm text-muted">
               Se <span className="text-fg">{sentTo}</span> tiver convite, o link de acesso chega em instantes.
             </p>
+            {!IS_DEMO ? (
+              <form
+                className="mt-4 space-y-2 text-left"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  verifyCode.mutate({ email: sentTo, code });
+                }}
+              >
+                <label className="block text-sm font-medium text-fg" htmlFor="codigo">
+                  Ou digite o código de 6 números do e-mail
+                </label>
+                <Input
+                  id="codigo"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  className="text-center text-lg tracking-[0.4em]"
+                />
+                <InlineError error={verifyCode.error} />
+                <Button type="submit" className="w-full" loading={verifyCode.isPending} disabled={code.length !== 6}>
+                  Entrar com o código
+                </Button>
+                <p className="text-xs text-dim">O código funciona em qualquer aparelho, mesmo que o link não abra.</p>
+              </form>
+            ) : null}
             {IS_DEMO ? (
               <>
                 <Button variant="secondary" className="mt-4 w-full" loading={openDemo.isPending} onClick={() => enter(sentTo)}>

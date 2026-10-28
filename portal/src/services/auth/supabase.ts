@@ -25,6 +25,19 @@ export async function sendMagicLink(email: string): Promise<void> {
   if (error?.message === 'Failed to fetch') throw new AppError('Sem conexão com o servidor. Tente de novo.');
 }
 
+/**
+ * Entrar com o código de 6 dígitos que vem no mesmo e-mail do link.
+ * Funciona em qualquer aparelho: não depende do endereço para onde o link aponta.
+ */
+export async function verifyEmailCode(email: string, code: string): Promise<void> {
+  const token = code.replace(/\D/g, '');
+  if (token.length !== 6) throw new AppError('Digite os 6 números do código.');
+  const { error } = await supabase().auth.verifyOtp({ email: email.trim().toLowerCase(), token, type: 'email' });
+  if (error?.status === 429) throw new AppError('Muitas tentativas seguidas. Espere alguns minutos e tente de novo.');
+  if (error?.message === 'Failed to fetch') throw new AppError('Sem conexão com o servidor. Tente de novo.');
+  if (error) throw new AppError('Código inválido ou vencido. Peça um novo link e use o código do e-mail mais recente.');
+}
+
 /** Tour do primeiro acesso visto (ou pulado). */
 export async function markTourDone(): Promise<void> {
   unwrap(await supabase().rpc('mark_tour_done'));

@@ -16,6 +16,7 @@ export const markTourDone = impl.markTourDone;
 export const signInWithPassword = impl.signInWithPassword;
 export const signUpAgency = impl.signUpAgency;
 export const setMyPassword = impl.setMyPassword;
+export const verifyEmailCode = impl.verifyEmailCode;
 export const onAuthChange = USE_SUPABASE ? sb.onAuthChange : () => () => {};
 
 // Só no modo demonstração.

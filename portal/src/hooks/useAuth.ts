@@ -11,6 +11,7 @@ import {
   signOut,
   setMyPassword,
   signUpAgency,
+  verifyEmailCode,
 } from '../services/auth';
 
 export function useSession() {
@@ -45,6 +46,14 @@ export function usePasswordSignIn() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) => signInWithPassword(email, password),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
+  });
+}
+
+export function useVerifyEmailCode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ email, code }: { email: string; code: string }) => verifyEmailCode(email, code),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
   });
 }
