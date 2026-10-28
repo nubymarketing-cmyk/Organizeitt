@@ -1,0 +1,73 @@
+/*
+ * Tokens do tema. Cores em "R G B" para o Tailwind aplicar opacidade (bg-fg/5 etc.).
+ * Claro é o padrão; escuro em html.dark (cinzas neutros, contraste AA).
+ * A cor da marca vem da agência (white label) por --brand / --brand-soft.
+ */
+:root {
+  /* Superfícies e texto */
+  --bg: 246 247 249;
+  --surface: 255 255 255;
+  --surface-2: 241 243 245;
+  --border: 226 229 234;
+  --fg: 20 22 26;
+  --muted: 82 89 99;
+  --dim: 107 114 125;
+
+  /* Marca: verde-petróleo por padrão. --brand-soft é a versão clara, usada no escuro. */
+  --brand: 14 124 107;
+  --brand-soft: 60 197 174;
+  --brand-fg: 255 255 255;
+  --link: var(--brand);
+
+  /* Menus (dropdowns): sempre opacos */
+  --popover: 255 255 255;
+
+  /* Status */
+  --ok: 21 128 61;
+  --warn: 180 83 9;
+  --bad: 220 38 38;
+  --info: 37 99 235;
+
+  /* Forma */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.08);
+  --shadow-md: 0 4px 12px rgb(16 24 40 / 0.08), 0 2px 4px rgb(16 24 40 / 0.06);
+  --shadow-lg: 0 16px 40px rgb(16 24 40 / 0.16);
+
+  color-scheme: light;
+}
+
+html.dark {
+  --bg: 17 18 20;
+  --surface: 24 26 29;
+  --surface-2: 32 35 39;
+  --border: 46 50 56;
+  --fg: 236 237 239;
+  --muted: 168 173 181;
+  --dim: 134 140 149;
+
+  --link: var(--brand-soft);
+
+  --popover: 31 31 35;
+
+  --ok: 74 222 128;
+  --warn: 245 181 68;
+  --bad: 248 113 113;
+  --info: 96 165 250;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.55);
+
+  color-scheme: dark;
+}
+
+/* Área com a cor da agência (white label): o link acompanha a marca e o tema. */
+.brand-scope {
+  --link: var(--brand);
+}
+html.dark .brand-scope {
+  --link: var(--brand-soft);
+}
