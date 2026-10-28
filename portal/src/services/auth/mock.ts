@@ -44,6 +44,10 @@ export async function signUpAgency(): Promise<{ signedIn: boolean }> {
   throw new AppError(ONLY_SUPABASE);
 }
 
+export async function setMyPassword(): Promise<void> {
+  throw new AppError('Disponível só com o Supabase ligado.');
+}
+
 export async function signOut(): Promise<void> {
   setCurrentUser(null);
   await delay(null, 50);

@@ -9,6 +9,7 @@ import { Icon, type IconName } from '../icons';
 import { Logo } from './Logo';
 import { NotificationBell } from '../NotificationBell';
 import { ThemeToggle } from '../ThemeToggle';
+import { PasswordModal } from '../PasswordModal';
 
 interface NavItem {
   to: string;
@@ -29,6 +30,7 @@ export function AgencyLayout() {
   const agency = useMyAgency();
   const location = useLocation();
   const [drawer, setDrawer] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const onboarding = location.pathname === '/agencia/boas-vindas';
 
   // Fecha a gaveta ao trocar de página.
@@ -87,6 +89,17 @@ export function AgencyLayout() {
         </div>
       )}
       <ThemeToggle withLabel={!compact} />
+      <button
+        onClick={() => setPasswordOpen(true)}
+        title={compact ? 'Definir senha' : undefined}
+        className={cx(
+          'inline-flex min-h-[44px] items-center gap-2 rounded-lg text-sm text-muted hover:bg-fg/5 hover:text-fg',
+          compact ? 'w-11 justify-center' : 'w-full px-3',
+        )}
+      >
+        <Icon name="key" />
+        {compact ? <span className="sr-only">Definir senha</span> : <span>Definir senha</span>}
+      </button>
       <button
         onClick={() => signOut.mutate()}
         title={compact ? 'Sair' : undefined}
@@ -157,6 +170,7 @@ export function AgencyLayout() {
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-10 md:py-8">
           <AccountBanner agency={agency.data} isAdmin={isAdmin} />
+          {passwordOpen ? <PasswordModal onClose={() => setPasswordOpen(false)} /> : null}
           <Suspense fallback={<PageFallback />}>
             <Outlet />
           </Suspense>

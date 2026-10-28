@@ -96,7 +96,7 @@ export function LoginPage() {
               </button>
             ) : null}
             <p className="text-center text-xs text-dim">
-              {mode === 'senha' ? 'Esqueceu a senha? Use o link no e-mail.' : 'Clínicas entram sem senha, pelo convite da agência.'}
+              {mode === 'senha' ? 'Ainda não tem senha ou esqueceu? Entre pelo link no e-mail e crie em "Definir senha", no menu.' : 'Clínicas entram sem senha, pelo convite da agência.'}
             </p>
           </form>
         )}

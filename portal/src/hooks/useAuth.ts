@@ -9,6 +9,7 @@ import {
   sendMagicLink,
   signInWithPassword,
   signOut,
+  setMyPassword,
   signUpAgency,
 } from '../services/auth';
 
@@ -46,6 +47,10 @@ export function usePasswordSignIn() {
     mutationFn: ({ email, password }: { email: string; password: string }) => signInWithPassword(email, password),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
   });
+}
+
+export function useSetMyPassword() {
+  return useMutation({ mutationFn: setMyPassword });
 }
 
 export function useSignUpAgency() {

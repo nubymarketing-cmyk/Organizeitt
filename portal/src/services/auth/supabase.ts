@@ -59,6 +59,14 @@ export async function signUpAgency(agencyName: string, email: string, password: 
   return { signedIn: !!data.session };
 }
 
+/** Cria ou troca a senha de quem já está logado (entrou pelo link do e-mail, por exemplo). */
+export async function setMyPassword(password: string): Promise<void> {
+  if (password.length < 8) throw new AppError('A senha precisa ter pelo menos 8 caracteres.');
+  const { error } = await supabase().auth.updateUser({ password });
+  if (error?.message.toLowerCase().includes('same')) throw new AppError('Essa já é a sua senha atual.');
+  if (error) throw new AppError(error.message === 'Failed to fetch' ? 'Sem conexão com o servidor. Tente de novo.' : error.message);
+}
+
 export async function signOut(): Promise<void> {
   await supabase().auth.signOut();
 }
