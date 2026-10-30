@@ -48,6 +48,10 @@ export async function verifyEmailCode(): Promise<void> {
   throw new AppError('Disponível só com o Supabase ligado.');
 }
 
+export async function claimAccess(): Promise<void> {
+  throw new AppError('Disponível só com o Supabase ligado.');
+}
+
 export async function setMyPassword(): Promise<void> {
   throw new AppError('Disponível só com o Supabase ligado.');
 }

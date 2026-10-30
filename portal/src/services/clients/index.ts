@@ -4,7 +4,7 @@ import { USE_SUPABASE } from '../config';
 import * as mock from './mock';
 import * as sb from './supabase';
 
-export type { ClientInput, ClientWithCounts, InviteInput, PaymentStatus } from './types';
+export type { ClientInput, ClientUser, ClientWithCounts, InviteInput, PaymentStatus } from './types';
 
 export const {
   listClients,
@@ -14,6 +14,7 @@ export const {
   deactivateClient,
   listClientUsers,
   inviteUser,
+  resetUserAccess,
   listCharges,
   createCharge,
   setChargePaid,

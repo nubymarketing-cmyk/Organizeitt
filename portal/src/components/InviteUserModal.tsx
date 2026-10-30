@@ -2,11 +2,12 @@ import { useState } from 'react';
 import type { UserRole } from '../types/database';
 import { useClients, useInviteUser } from '../hooks/useClients';
 import { ROLE_LABEL } from '../lib/format';
+import { AccessCodeCard } from './AccessCodeCard';
 import { Button, Dropdown, Field, InlineError, Input, Modal } from './ui';
 
 const ROLES: UserRole[] = ['client_owner', 'client_member', 'agency_member', 'agency_admin'];
 
-/** Convite de usuário: registra o convite e envia o link de acesso por e-mail. */
+/** Convite de usuário: registra o convite e mostra o código de acesso para repassar à pessoa. */
 export function InviteUserModal({
   open,
   onClose,
@@ -22,7 +23,7 @@ export function InviteUserModal({
   const invite = useInviteUser();
   const empty = { email: '', full_name: '', role: defaultRole, client_id: clientId ?? '', assigned: [] as string[] };
   const [form, setForm] = useState(empty);
-  const [done, setDone] = useState<string | null>(null);
+  const [done, setDone] = useState<{ name: string; email: string; code: string } | null>(null);
 
   const isClientRole = form.role === 'client_owner' || form.role === 'client_member';
   const close = () => {
@@ -35,10 +36,9 @@ export function InviteUserModal({
   return (
     <Modal open={open} onClose={close} title="Convidar usuário">
       {done ? (
-        <div className="space-y-4 text-center">
-          <p className="text-fg">Convite enviado para {done}.</p>
-          <p className="text-sm text-muted">A pessoa recebe um link por e-mail e entra sem senha.</p>
-          <Button className="w-full" onClick={close}>
+        <div className="space-y-4">
+          <AccessCodeCard name={done.name} email={done.email} code={done.code} />
+          <Button variant="secondary" className="w-full" onClick={close}>
             Fechar
           </Button>
         </div>
@@ -55,7 +55,7 @@ export function InviteUserModal({
                 client_id: isClientRole ? form.client_id || null : null,
                 assigned_client_ids: form.role === 'agency_member' ? form.assigned : [],
               },
-              { onSuccess: () => setDone(form.email) },
+              { onSuccess: (code) => setDone({ name: form.full_name.trim(), email: form.email.trim().toLowerCase(), code }) },
             );
           }}
         >
@@ -99,7 +99,7 @@ export function InviteUserModal({
           ) : null}
           <InlineError error={invite.error} />
           <Button type="submit" className="w-full" loading={invite.isPending}>
-            Enviar convite
+            Gerar convite
           </Button>
         </form>
       )}

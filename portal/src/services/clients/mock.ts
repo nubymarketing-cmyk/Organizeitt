@@ -1,9 +1,9 @@
 // Clientes da agência e convite de usuários no modo demonstração.
 
-import type { Client, ClientCharge, Profile } from '../../types/database';
+import type { Client, ClientCharge } from '../../types/database';
 import { AppError, assertClientAccess, requireProfile, requireStaff } from '../mock/access';
 import { db, delay, nowIso, uid } from '../mock/db';
-import type { ClientWithCounts, InviteInput } from './types';
+import type { ClientUser, ClientWithCounts, InviteInput } from './types';
 
 export async function listClients(): Promise<ClientWithCounts[]> {
   const p = requireStaff();
@@ -67,13 +67,13 @@ export async function deactivateClient(id: string): Promise<void> {
   await delay(null);
 }
 
-export async function listClientUsers(clientId: string): Promise<Profile[]> {
+export async function listClientUsers(clientId: string): Promise<ClientUser[]> {
   const p = requireStaff();
   assertClientAccess(p, clientId);
-  return delay(db.profiles.filter((x) => x.client_id === clientId).map((x) => ({ ...x })));
+  return delay(db.profiles.filter((x) => x.client_id === clientId).map((x) => ({ ...x, pending: false, access_code: null })));
 }
 
-export async function inviteUser(input: InviteInput): Promise<void> {
+export async function inviteUser(input: InviteInput): Promise<string> {
   const p = requireStaff();
   if (p.role !== 'agency_admin') throw new AppError('Só o admin da agência pode convidar usuários.');
   const email = input.email.trim().toLowerCase();
@@ -95,7 +95,12 @@ export async function inviteUser(input: InviteInput): Promise<void> {
     tour_done_at: null,
     phone: null,
   });
-  await delay(null, 500);
+  // Demonstração: código de exemplo (o login com senha só existe com o Supabase).
+  return delay('DEMO23', 500);
+}
+
+export async function resetUserAccess(): Promise<string> {
+  return delay('DEMO23');
 }
 
 const ONLY_SUPABASE = 'Disponível só com o Supabase ligado.';

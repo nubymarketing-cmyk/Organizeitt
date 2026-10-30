@@ -1,4 +1,4 @@
-import type { Client, UserRole } from '../../types/database';
+import type { Client, Profile, UserRole } from '../../types/database';
 
 /** none: sem cobrança; open: a vencer; paid: tudo pago; overdue: vencida. */
 export type PaymentStatus = 'none' | 'open' | 'paid' | 'overdue';
@@ -22,6 +22,12 @@ export interface ClientInput {
   color: string | null;
   monthly_fee: number | null;
   billing_day: number | null;
+}
+
+/** Pessoa da clínica: com conta ou com convite pendente (e o código de acesso, que só o admin vê). */
+export interface ClientUser extends Profile {
+  pending: boolean;
+  access_code: string | null;
 }
 
 export interface InviteInput {

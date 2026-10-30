@@ -38,15 +38,50 @@ export async function verifyEmailCode(email: string, code: string): Promise<void
   if (error) throw new AppError('Código inválido ou vencido. Peça um novo link e use o código do e-mail mais recente.');
 }
 
+/**
+ * Primeiro acesso (ou senha esquecida): e-mail + código de acesso da agência + senha nova.
+ * Quem já tem usuário troca a senha pelo banco (claim_access); quem não tem é criado com signUp,
+ * levando o código para o gatilho do banco conferir. Depois disso a pessoa já fica logada.
+ */
+export async function claimAccess(email: string, code: string, password: string): Promise<void> {
+  const clean = email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) throw new AppError('Digite um e-mail válido.');
+  if (code.trim().length < 6) throw new AppError('Digite os 6 caracteres do código de acesso.');
+  if (password.length < 8) throw new AppError('A senha precisa ter pelo menos 8 caracteres.');
+  const INVALID = 'E-mail ou código de acesso inválido. Confira com quem te convidou ou peça um código novo.';
+
+  const status = unwrap(
+    await supabase().rpc('claim_access', { p_email: clean, p_code: code, p_password: password }),
+  ) as 'ok' | 'no_user' | 'invalid';
+  if (status === 'invalid') throw new AppError(INVALID);
+
+  if (status === 'ok') {
+    const { error } = await supabase().auth.signInWithPassword({ email: clean, password });
+    if (error) throw new AppError('Senha criada, mas não deu para entrar agora. Tente pela tela de login.');
+    return;
+  }
+
+  const { data, error } = await supabase().auth.signUp({
+    email: clean,
+    password,
+    options: { data: { invite_code: code.trim().toUpperCase() } },
+  });
+  if (error?.status === 429) throw new AppError('Muitas tentativas seguidas. Espere alguns minutos e tente de novo.');
+  if (error) throw new AppError(INVALID);
+  if (!data.session) {
+    throw new AppError('Conta criada, mas o Supabase ainda pede confirmação por e-mail. Avise a agência para desligar "Confirm email".');
+  }
+}
+
 /** Tour do primeiro acesso visto (ou pulado). */
 export async function markTourDone(): Promise<void> {
   unwrap(await supabase().rpc('mark_tour_done'));
 }
 
-/** Entrada com senha (equipe da agência). As clínicas entram pelo link no e-mail. */
+/** Entrada com e-mail e senha, para agência e clínicas. */
 export async function signInWithPassword(email: string, password: string): Promise<void> {
   const { error } = await supabase().auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
-  if (error?.status === 400) throw new AppError('E-mail ou senha incorretos. Sem senha? Use o link por e-mail.');
+  if (error?.status === 400) throw new AppError('E-mail ou senha incorretos. Primeira vez ou esqueceu? Use "Primeiro acesso" com o código da agência.');
   if (error) throw new AppError(error.message === 'Failed to fetch' ? 'Sem conexão com o servidor. Tente de novo.' : error.message);
 }
 
@@ -68,6 +103,9 @@ export async function signUpAgency(agencyName: string, email: string, password: 
     options: { data: { signup_agency_name: name }, emailRedirectTo: `${appUrl()}/login` },
   });
   if (error?.status === 429) throw new AppError('Muitos cadastros seguidos. Espere alguns minutos e tente de novo.');
+  if (error?.message.includes('Database error')) {
+    throw new AppError('Este e-mail tem um convite de uma agência. Use "Primeiro acesso" na tela de login, com o código que ela te passou.');
+  }
   if (error) throw new AppError(error.message.includes('already') ? 'Este e-mail já tem conta. Entre pela tela de login.' : error.message);
   return { signedIn: !!data.session };
 }

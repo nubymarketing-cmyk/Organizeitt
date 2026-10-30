@@ -63,6 +63,18 @@ e o link **Restaurar dados de exemplo**.
 
 As telas nunca acessam dados direto: sempre `página -> hook -> service`.
 
+## Login
+
+E-mail e senha para todos, sem depender de e-mail chegando:
+
+1. O admin convida a pessoa e o portal mostra um **código de acesso** (botões para WhatsApp e copiar).
+2. A pessoa abre `/primeiro-acesso`, informa e-mail + código e cria a senha.
+3. Esqueceu a senha: o admin gera um código novo (tela Equipe ou aba Usuários do cliente) e ela repete o passo 2.
+
+O código vale 14 dias, uma vez só, e trava depois de 10 tentativas erradas. Agência nova se cadastra em `/cadastro`.
+Precisa de **Authentication > Sign In / Providers > Email > Confirm email desligado** no Supabase.
+O link no e-mail continua como alternativa na tela de login.
+
 ## Papéis
 
 | Papel | O que faz |

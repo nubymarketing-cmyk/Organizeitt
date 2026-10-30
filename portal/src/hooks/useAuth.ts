@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type { Profile } from '../types/database';
 import {
+  claimAccess,
   getSessionProfile,
   markTourDone,
   onAuthChange,
@@ -54,6 +55,14 @@ export function useVerifyEmailCode() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ email, code }: { email: string; code: string }) => verifyEmailCode(email, code),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
+  });
+}
+
+export function useClaimAccess() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ email, code, password }: { email: string; code: string; password: string }) => claimAccess(email, code, password),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['session'] }),
   });
 }

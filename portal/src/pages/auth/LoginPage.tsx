@@ -15,8 +15,8 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [linkError] = useState(readLinkError);
-  // Clínicas entram pelo link; a equipe da agência pode usar senha.
-  const [mode, setMode] = useState<'link' | 'senha'>('link');
+  // E-mail e senha é o caminho principal; o link no e-mail fica como alternativa.
+  const [mode, setMode] = useState<'link' | 'senha'>(IS_DEMO ? 'link' : 'senha');
   const [password, setPassword] = useState('');
   const passwordSignIn = usePasswordSignIn();
   const verifyCode = useVerifyEmailCode();
@@ -117,17 +117,21 @@ export function LoginPage() {
             </Button>
             <InlineError error={(mode === 'senha' ? passwordSignIn.error : send.error) ?? linkError} />
             {!IS_DEMO ? (
-              <button
-                type="button"
-                className="block min-h-[44px] w-full text-center text-sm text-lilac"
-                onClick={() => setMode(mode === 'senha' ? 'link' : 'senha')}
-              >
-                {mode === 'senha' ? 'Entrar sem senha, com link no e-mail' : 'Sou da agência, entrar com senha'}
-              </button>
+              <>
+                <Link to="/primeiro-acesso" className="block">
+                  <Button type="button" variant="secondary" className="w-full">
+                    Primeiro acesso ou esqueci a senha
+                  </Button>
+                </Link>
+                <button
+                  type="button"
+                  className="block min-h-[44px] w-full text-center text-xs text-muted hover:text-fg"
+                  onClick={() => setMode(mode === 'senha' ? 'link' : 'senha')}
+                >
+                  {mode === 'senha' ? 'Prefiro receber um link no e-mail' : 'Entrar com e-mail e senha'}
+                </button>
+              </>
             ) : null}
-            <p className="text-center text-xs text-dim">
-              {mode === 'senha' ? 'Ainda não tem senha ou esqueceu? Entre pelo link no e-mail e crie em "Definir senha", no menu.' : 'Clínicas entram sem senha, pelo convite da agência.'}
-            </p>
           </form>
         )}
 

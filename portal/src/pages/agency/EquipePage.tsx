@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useSession } from '../../hooks/useAuth';
 import { useSetMemberClients, useTeam } from '../../hooks/useAgency';
-import { useClients } from '../../hooks/useClients';
+import { useClients, useResetUserAccess } from '../../hooks/useClients';
 import { ROLE_LABEL, initials } from '../../lib/format';
 import type { TeamMember } from '../../services/agency';
-import { Button, Card, EmptyState, ErrorState, InlineError, PageHeader, SkeletonList } from '../../components/ui';
+import { Button, Card, ConfirmButton, EmptyState, ErrorState, InlineError, PageHeader, SkeletonList } from '../../components/ui';
 import { ClientChecklist, InviteUserModal } from '../../components/InviteUserModal';
+import { AccessCodeCard } from '../../components/AccessCodeCard';
 
 /** Equipe da agência e quais clientes cada pessoa atende. Só o admin. */
 export function EquipePage() {
@@ -54,6 +55,7 @@ export function EquipePage() {
 
 function MemberCard({ member, clients }: { member: TeamMember; clients: Array<{ id: string; name: string }> }) {
   const save = useSetMemberClients();
+  const reset = useResetUserAccess();
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState(member.client_ids);
   const isMember = member.role === 'agency_member';
@@ -76,6 +78,24 @@ function MemberCard({ member, clients }: { member: TeamMember; clients: Array<{ 
           <span className="text-lilac">{ROLE_LABEL[member.role]}</span>
         </div>
       </div>
+
+      {member.access_code ? (
+        <div className="mt-3">
+          <AccessCodeCard name={member.full_name} email={member.email} code={member.access_code} />
+        </div>
+      ) : !member.pending ? (
+        <div className="mt-2">
+          <ConfirmButton
+            variant="ghost"
+            loading={reset.isPending}
+            label="Gerar novo código de acesso"
+            question={`Gerar um código para ${member.full_name} criar uma senha nova? A senha atual continua valendo até o código ser usado.`}
+            confirmLabel="Gerar código"
+            onConfirm={() => reset.mutate(member.id)}
+          />
+          <InlineError error={reset.error} />
+        </div>
+      ) : null}
 
       {isMember ? (
         <div className="mt-3 border-t border-line pt-3">

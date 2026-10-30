@@ -40,7 +40,9 @@ export async function listTeam(): Promise<TeamMember[]> {
     db.from('client_assignments').select('client_id, profile_id'),
   ]);
   const links = unwrap(assignments) as { client_id: string; profile_id: string }[];
-  const active = (unwrap(profiles) as Profile[]).map(
+  const inviteRows = unwrap(invites) as (Profile & { assigned_client_ids: string[]; access_code: string | null })[];
+  const people = unwrap(profiles) as Profile[];
+  const active = people.map(
     (p): TeamMember => ({
       id: p.id,
       full_name: p.full_name,
@@ -48,18 +50,23 @@ export async function listTeam(): Promise<TeamMember[]> {
       role: p.role,
       pending: false,
       client_ids: links.filter((l) => l.profile_id === p.id).map((l) => l.client_id),
+      // Quem recebeu código novo para redefinir a senha continua mostrando o código.
+      access_code: inviteRows.find((i) => i.email === p.email)?.access_code ?? null,
     }),
   );
-  const pending = (unwrap(invites) as (Profile & { assigned_client_ids: string[] })[]).map(
-    (i): TeamMember => ({
-      id: i.id,
-      full_name: i.full_name,
-      email: i.email,
-      role: i.role,
-      pending: true,
-      client_ids: i.assigned_client_ids ?? [],
-    }),
-  );
+  const pending = inviteRows
+    .filter((i) => !people.some((p) => p.email === i.email))
+    .map(
+      (i): TeamMember => ({
+        id: i.id,
+        full_name: i.full_name,
+        email: i.email,
+        role: i.role,
+        pending: true,
+        client_ids: i.assigned_client_ids ?? [],
+        access_code: i.access_code,
+      }),
+    );
   return [...active, ...pending];
 }
 

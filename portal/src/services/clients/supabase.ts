@@ -1,11 +1,11 @@
 // Clientes e convites no Supabase.
-// Convite: a RPC invite_user registra a pessoa e o link de acesso vai por e-mail
-// (signInWithOtp). No primeiro login o banco cria o profile a partir do convite.
+// Convite: a RPC invite_user registra a pessoa e devolve um código de acesso. Com e-mail + código
+// ela cria a senha em "Primeiro acesso"; o banco cria o profile a partir do convite.
 
 import type { Client, ClientCharge, Profile } from '../../types/database';
 import { AppError } from '../errors';
-import { appUrl, supabase, unwrap } from '../supabase';
-import type { ClientInput, ClientWithCounts, InviteInput, PaymentStatus } from './types';
+import { supabase, unwrap } from '../supabase';
+import type { ClientInput, ClientUser, ClientWithCounts, InviteInput, PaymentStatus } from './types';
 
 /** numeric chega como texto do Postgres. */
 function fromRow(c: Client): Client {
@@ -27,11 +27,14 @@ export async function listClients(): Promise<ClientWithCounts[]> {
   const [clients, summary, profiles, invites] = await Promise.all([
     db.from('clients').select('*').eq('active', true).order('name'),
     db.rpc('clients_summary'),
-    db.from('profiles').select('client_id').not('client_id', 'is', null),
-    db.from('invitations').select('client_id').is('accepted_at', null).not('client_id', 'is', null),
+    db.from('profiles').select('client_id, email').not('client_id', 'is', null),
+    db.from('invitations').select('client_id, email').is('accepted_at', null).not('client_id', 'is', null),
   ]);
   const stats = new Map((unwrap(summary) as SummaryRow[]).map((r) => [r.client_id, r]));
-  const userRows = [...(unwrap(profiles) as { client_id: string }[]), ...(unwrap(invites) as { client_id: string }[])];
+  // Quem tem conta e código novo aparece nas duas listas: conta uma vez só.
+  const profileRows = unwrap(profiles) as { client_id: string; email: string }[];
+  const inviteRows = (unwrap(invites) as { client_id: string; email: string }[]).filter((i) => !profileRows.some((p) => p.email === i.email));
+  const userRows = [...profileRows, ...inviteRows];
   return (unwrap(clients) as Client[])
     .map((c) => {
       const st = stats.get(c.id);
@@ -117,47 +120,56 @@ export async function deactivateClient(id: string): Promise<void> {
   unwrap(await supabase().rpc('deactivate_client', { p_client: id }));
 }
 
-/** Usuários da clínica, incluindo convites que ainda não fizeram o primeiro login. */
-export async function listClientUsers(clientId: string): Promise<Profile[]> {
+/** Usuários da clínica, incluindo convites que ainda não fizeram o primeiro acesso. */
+export async function listClientUsers(clientId: string): Promise<ClientUser[]> {
   const db = supabase();
   const [profiles, invites] = await Promise.all([
     db.from('profiles').select('*').eq('client_id', clientId).order('full_name'),
     db.from('invitations').select('*').eq('client_id', clientId).is('accepted_at', null).order('full_name'),
   ]);
-  const pending = (unwrap(invites) as Profile[]).map(
-    (inv): Profile => ({
-      id: inv.id,
-      created_at: inv.created_at,
-      agency_id: inv.agency_id,
-      client_id: inv.client_id,
-      role: inv.role,
-      full_name: inv.full_name,
-      email: `${inv.email} · convite pendente`,
-      tour_done_at: null,
-      phone: null,
-    }),
+  const people = unwrap(profiles) as Profile[];
+  const inviteRows = unwrap(invites) as (Profile & { access_code: string | null })[];
+  const pending = inviteRows
+    .filter((inv) => !people.some((p) => p.email === inv.email))
+    .map(
+      (inv): ClientUser => ({
+        id: inv.id,
+        created_at: inv.created_at,
+        agency_id: inv.agency_id,
+        client_id: inv.client_id,
+        role: inv.role,
+        full_name: inv.full_name,
+        email: inv.email,
+        tour_done_at: null,
+        phone: null,
+        pending: true,
+        access_code: inv.access_code,
+      }),
+    );
+  // Quem já tem conta mas recebeu código novo (redefinição de senha) mostra o código também.
+  const active = people.map(
+    (p): ClientUser => ({ ...p, pending: false, access_code: inviteRows.find((i) => i.email === p.email)?.access_code ?? null }),
   );
-  return [...(unwrap(profiles) as Profile[]), ...pending];
+  return [...active, ...pending];
 }
 
-export async function inviteUser(input: InviteInput): Promise<void> {
-  const email = input.email.trim().toLowerCase();
-  unwrap(
+/**
+ * Registra o convite e devolve o código de acesso. A agência manda o código para a pessoa
+ * (WhatsApp, por exemplo), e ela cria a senha em "Primeiro acesso". Não depende de e-mail.
+ */
+export async function inviteUser(input: InviteInput): Promise<string> {
+  return unwrap(
     await supabase().rpc('invite_user', {
-      p_email: email,
+      p_email: input.email.trim().toLowerCase(),
       p_full_name: input.full_name,
       p_role: input.role,
       p_client: input.client_id,
       p_assigned: input.role === 'agency_member' ? (input.assigned_client_ids ?? []) : [],
     }),
-  );
-  const { error } = await supabase().auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: true, emailRedirectTo: `${appUrl()}/login` },
-  });
-  if (error) {
-    throw new AppError(
-      `Convite registrado, mas o e-mail não saiu (${error.message}). A pessoa pode entrar pela tela de login com este e-mail.`,
-    );
-  }
+  ) as string;
+}
+
+/** Novo código de acesso para quem já tem conta (esqueceu a senha ou nunca criou). Só o admin. */
+export async function resetUserAccess(profileId: string): Promise<string> {
+  return unwrap(await supabase().rpc('reset_user_access', { p_profile: profileId })) as string;
 }

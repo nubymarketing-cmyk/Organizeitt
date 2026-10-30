@@ -7,6 +7,7 @@ import { useCreateClient, useInviteUser } from '../../hooks/useClients';
 import { completeOnboarding } from '../../services/agency';
 import { Button, Card, ErrorState, Field, InlineError, Input, Skeleton, cx } from '../../components/ui';
 import { BrandingForm } from './ConfiguracoesPage';
+import { AccessCodeCard } from '../../components/AccessCodeCard';
 
 const STEPS = ['Sua marca', 'Primeiro cliente', 'Convidar a clínica'];
 
@@ -117,6 +118,18 @@ function FirstClient({ onCreated }: { onCreated: (c: { id: string; name: string 
 function InviteClinic({ client, onDone }: { client: { id: string; name: string } | null; onDone: () => void }) {
   const invite = useInviteUser();
   const [form, setForm] = useState({ full_name: '', email: '' });
+  const [code, setCode] = useState<string | null>(null);
+  if (code) {
+    return (
+      <Card className="space-y-4">
+        <h2 className="font-display text-lg font-bold text-fg">Convite pronto</h2>
+        <AccessCodeCard name={form.full_name.trim()} email={form.email.trim().toLowerCase()} code={code} />
+        <Button className="w-full" onClick={onDone}>
+          Concluir e ir para o portal
+        </Button>
+      </Card>
+    );
+  }
   if (!client) {
     return (
       <Card className="text-sm text-muted">
@@ -130,11 +143,11 @@ function InviteClinic({ client, onDone }: { client: { id: string; name: string }
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          invite.mutate({ ...form, role: 'client_owner', client_id: client.id }, { onSuccess: onDone });
+          invite.mutate({ ...form, role: 'client_owner', client_id: client.id }, { onSuccess: setCode });
         }}
       >
         <h2 className="font-display text-lg font-bold text-fg">Convide o responsável pela {client.name}</h2>
-        <p className="text-sm text-muted">A pessoa recebe um link por e-mail e entra sem senha, já na área da clínica.</p>
+        <p className="text-sm text-muted">O portal gera um código para você mandar à pessoa. Com ele, ela cria a própria senha e já entra na área da clínica.</p>
         <Field label="Nome">
           <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required autoFocus />
         </Field>
@@ -143,7 +156,7 @@ function InviteClinic({ client, onDone }: { client: { id: string; name: string }
         </Field>
         <InlineError error={invite.error} />
         <Button type="submit" className="w-full" loading={invite.isPending}>
-          Enviar convite e concluir
+          Gerar convite
         </Button>
       </form>
     </Card>

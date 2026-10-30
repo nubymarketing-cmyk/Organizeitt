@@ -13,6 +13,7 @@ function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, n
 }
 
 const CadastroPage = page(() => import('./pages/auth/CadastroPage'), 'CadastroPage');
+const PrimeiroAcessoPage = page(() => import('./pages/auth/PrimeiroAcessoPage'), 'PrimeiroAcessoPage');
 const BoasVindasPage = page(() => import('./pages/agency/BoasVindasPage'), 'BoasVindasPage');
 const InicioPage = page(() => import('./pages/client/InicioPage'), 'InicioPage');
 const PostDetalhePage = page(() => import('./pages/client/PostDetalhePage'), 'PostDetalhePage');
@@ -38,6 +39,7 @@ export function App() {
       <Route path="/" element={<HomeRedirect />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/cadastro" element={<CadastroPage />} />
+      <Route path="/primeiro-acesso" element={<PrimeiroAcessoPage />} />
 
       <Route element={<RequireAuth area="client" />}>
         <Route path="/app" element={<ClientLayout />}>

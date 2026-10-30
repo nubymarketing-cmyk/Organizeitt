@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useSession } from '../../hooks/useAuth';
 import { useTeam } from '../../hooks/useAgency';
-import { useClient, useClientUsers, useClients, useDeactivateClient, useUpdateClient } from '../../hooks/useClients';
+import { useClient, useClientUsers, useClients, useDeactivateClient, useResetUserAccess, useUpdateClient } from '../../hooks/useClients';
+import type { ClientUser } from '../../services/clients';
+import { AccessCodeCard } from '../../components/AccessCodeCard';
 import { usePosts, useReschedulePost } from '../../hooks/usePosts';
 import { NETWORK_LABEL, ROLE_LABEL, STATUS_LABEL, capitalize, formatDateTime } from '../../lib/format';
 import type { Client, Network, Post, PostStatus } from '../../types/database';
@@ -316,17 +318,11 @@ function ClientUsers({ clientId }: { clientId: string }) {
       ) : users.data?.length ? (
         <div className="space-y-2">
           {users.data.map((u) => (
-            <Card key={u.id} className="flex items-center justify-between py-3">
-              <div>
-                <p className="font-semibold text-fg">{u.full_name}</p>
-                <p className="text-xs text-muted">{u.email}</p>
-              </div>
-              <span className="text-xs text-lilac">{ROLE_LABEL[u.role]}</span>
-            </Card>
+            <ClientUserCard key={u.id} user={u} isAdmin={isAdmin} />
           ))}
         </div>
       ) : (
-        <EmptyState illustration="people" title="Ninguém da clínica tem acesso ainda" text="Convide o dono ou a recepção para começar a aprovar posts." />
+        <EmptyState illustration="people" title="Ninguém da clínica tem acesso ainda" text="Convide o dono ou a equipe da clínica. O portal gera um código para você mandar por WhatsApp." />
       )}
 
       {isAdmin ? (
@@ -345,6 +341,36 @@ function ClientUsers({ clientId }: { clientId: string }) {
 
       <InviteUserModal open={inviting} onClose={() => setInviting(false)} clientId={clientId} />
     </div>
+  );
+}
+
+function ClientUserCard({ user: u, isAdmin }: { user: ClientUser; isAdmin: boolean }) {
+  const reset = useResetUserAccess();
+  return (
+    <Card className="space-y-3 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-fg">{u.full_name}</p>
+          <p className="truncate text-xs text-muted">{u.email}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {u.pending ? <Badge tone="warn">Ainda não criou a senha</Badge> : null}
+          <span className="text-xs text-link">{ROLE_LABEL[u.role]}</span>
+        </div>
+      </div>
+      {isAdmin && u.access_code ? <AccessCodeCard name={u.full_name} email={u.email} code={u.access_code} /> : null}
+      {isAdmin && !u.pending && !u.access_code ? (
+        <ConfirmButton
+          variant="ghost"
+          loading={reset.isPending}
+          label="Gerar novo código de acesso"
+          question={`Gerar um código para ${u.full_name} criar uma senha nova? A senha atual continua valendo até o código ser usado.`}
+          confirmLabel="Gerar código"
+          onConfirm={() => reset.mutate(u.id)}
+        />
+      ) : null}
+      <InlineError error={reset.error} />
+    </Card>
   );
 }
 

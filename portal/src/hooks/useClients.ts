@@ -4,6 +4,7 @@ import {
   deactivateClient,
   getClient,
   inviteUser,
+  resetUserAccess,
   listClients,
   listClientUsers,
   updateClient,
@@ -48,6 +49,17 @@ export function useInviteUser() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['client-users'] });
       qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
+    },
+  });
+}
+
+export function useResetUserAccess() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: resetUserAccess,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-users'] });
       qc.invalidateQueries({ queryKey: ['team'] });
     },
   });

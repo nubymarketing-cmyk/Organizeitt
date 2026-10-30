@@ -22,7 +22,7 @@ export async function listTeam(): Promise<TeamMember[]> {
   return delay(
     db.profiles
       .filter((x) => x.agency_id === p.agency_id && !x.client_id)
-      .map((x) => ({ id: x.id, full_name: x.full_name, email: x.email, role: x.role, pending: false, client_ids: [] })),
+      .map((x) => ({ id: x.id, full_name: x.full_name, email: x.email, role: x.role, pending: false, client_ids: [], access_code: null })),
   );
 }
 

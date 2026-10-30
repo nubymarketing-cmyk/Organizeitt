@@ -9,6 +9,8 @@ export interface TeamMember {
   pending: boolean;
   /** Clientes atribuídos (só conta para quem é da equipe; o admin vê todos). */
   client_ids: string[];
+  /** Código de acesso ainda não usado; só o admin vê. */
+  access_code: string | null;
 }
 
 export interface BrandingInput {
