@@ -22,6 +22,8 @@ self.addEventListener('fetch', (e) => {
   const isRuntime = RUNTIME_HOSTS.includes(url.hostname);
   const isSameOrigin = url.origin === self.location.origin;
   if (!isSameOrigin && !isRuntime) return;
+  // O site da estética automotiva (subpasta) tem cache próprio do navegador; o SW do Organize It não interfere.
+  if (isSameOrigin && url.pathname.includes('/estetica-automotiva/')) return;
 
   if (isHTML) {
     e.respondWith(fetch(req).then((res) => { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); return res; })

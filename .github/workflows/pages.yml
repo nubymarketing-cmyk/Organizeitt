@@ -22,6 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: estetica-automotiva/package-lock.json
+
+      # Site da estética automotiva (Next.js, exportação estática) publicado em /estetica-automotiva/
+      - name: Build do site da estética automotiva
+        working-directory: estetica-automotiva
+        run: |
+          set -e
+          npm ci
+          BASE_PATH="/${GITHUB_REPOSITORY#*/}/estetica-automotiva" npm run build
+
       - name: Montar a pasta do site
         run: |
           set -e
@@ -31,7 +45,9 @@ jobs:
             --exclude '.github' \
             --exclude '_site' \
             --exclude 'README.md' \
+            --exclude 'estetica-automotiva' \
             ./ _site/
+          cp -r estetica-automotiva/out _site/estetica-automotiva
           # .nojekyll impede o GitHub de processar o site com Jekyll
           touch _site/.nojekyll
           echo "Arquivos publicados:" && ls -la _site
