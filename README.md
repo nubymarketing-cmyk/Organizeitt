@@ -85,3 +85,8 @@ Eventos já instrumentados: `view` (troca de aba), `checkout_open`, `pro_activat
 - `claude/shopee-academia-page-dyz4xf` — desenvolvimento
 - `main` — produção
 - `gh-pages` — gerado pelo workflow, **não edite à mão**
+
+## Site Impacto Lavacar (estética automotiva)
+
+A pasta [`estetica-automotiva/`](estetica-automotiva/README.md) tem o site institucional da Impacto Lavacar
+(Next.js + Three.js). O workflow de Pages faz o build e publica em `/estetica-automotiva/`.
