@@ -7,7 +7,8 @@ const nextConfig = {
   basePath,
   trailingSlash: true,
   images: { unoptimized: true },
-  env: { NEXT_PUBLIC_BASE_PATH: basePath },
+  // ASSET_BASE permite caminhos relativos ('.') para pré-visualizações fora da raiz do domínio
+  env: { NEXT_PUBLIC_BASE_PATH: process.env.ASSET_BASE ?? basePath },
   distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: true,
   poweredByHeader: false,
